@@ -1,4 +1,4 @@
-#include "testApp.h"
+#include "ofApp.h"
 #include "ofxSimpleGuiToo.h"
 #include "ofxIldaRenderTarget.h"
 
@@ -11,20 +11,22 @@ ofVec2f mouseDownPos;   // position of mouse (normalized)
 ofVec2f lastMouseDownPos; // last position of mouse (normalized)
 
 // PARAMS
+bool doSyphonIn;
 bool doFboClear;
 bool doDrawErase;   // whether we are erasing (true) or drawing (erase)
 int brushThickness;
 
 //--------------------------------------------------------------
-void testApp::setup(){
+void ofApp::setup(){
     ofBackground(100);
     
-    etherdream.setup();
-    etherdream.setPPS(30000);
+    ildaDAC.setup();
+    ildaDAC.setPPS(30000);
     
     ildaFbo.setup(256, 256);
     
     gui.addTitle("INPUT");
+    gui.addToggle("doSyphonIn", doSyphonIn);
     gui.addToggle("doFboClear c", doFboClear);
     gui.addToggle("doDrawErase x", doDrawErase);
     gui.addSlider("brushThickness", brushThickness, 1, 50);
@@ -75,16 +77,20 @@ void testApp::setup(){
     gui.show();
     
     doFboClear = true;
+    
+    syphonIn.setup();
+    syphonIn.set("Main View","Modul8");
+
 }
 
 //--------------------------------------------------------------
-void testApp::update(){
+void ofApp::update(){
 }
 
 
 
 //--------------------------------------------------------------
-void drawInFbo() {
+void ofApp::drawInFbo() {
     ofPushStyle();
     ildaFbo.begin();
     if(doFboClear) {
@@ -96,11 +102,14 @@ void drawInFbo() {
         ofScale(ildaFbo.getWidth(), ildaFbo.getHeight(), 1);
         ofSetColor(doDrawErase ? 0 : 255);
         ofSetLineWidth(brushThickness);
-        ofLine(lastMouseDownPos, mouseDownPos);
-        ofEllipse(mouseDownPos, brushThickness/2.0f/ildaFbo.getWidth(), brushThickness/2.0f/ildaFbo.getHeight());
+        ofDrawLine(lastMouseDownPos, mouseDownPos);
+        ofDrawEllipse(mouseDownPos, brushThickness/2.0f/ildaFbo.getWidth(), brushThickness/2.0f/ildaFbo.getHeight());
         ofPopMatrix();
     }
-    
+    if(doSyphonIn){
+        ofBackground(0);
+        syphonIn.draw(0,0, ildaFbo.getWidth(), ildaFbo.getHeight());
+    }
     ildaFbo.end();
     ofPopStyle();
 }
@@ -109,7 +118,7 @@ void drawInFbo() {
 
 
 //--------------------------------------------------------------
-void testApp::draw() {
+void ofApp::draw() {
     // clear the current frame
     ildaFrame.clear();
     
@@ -128,24 +137,24 @@ void testApp::draw() {
     ofSetColor(0, 255, 0);
     ildaFrame.draw(dx, dy, dw, dh);
     
-    etherdream.setPoints(ildaFrame);
+    ildaDAC.setPoints(ildaFrame);
     
     // draw cursor
     ofEnableAlphaBlending();
     ofFill();
     ofSetColor(doDrawErase ? 0 : 255, 128);
     float r = brushThickness/2 * ofGetWidth() /2 / ildaFbo.getWidth();
-    ofCircle(ofGetMouseX(), ofGetMouseY(), r);
+    ofDrawCircle(ofGetMouseX(), ofGetMouseY(), r);
     ofNoFill();
     ofSetColor(255, 128);
-    ofCircle(ofGetMouseX(), ofGetMouseY(), r);
+    ofDrawCircle(ofGetMouseX(), ofGetMouseY(), r);
     
     gui.draw();
 }
 
 
 //--------------------------------------------------------------
-void testApp::keyPressed(int key){
+void ofApp::keyPressed(int key){
     switch(key) {
         case 'f': ofToggleFullscreen(); break;
         case 'c': doFboClear ^= true; break;
@@ -160,14 +169,14 @@ void testApp::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-void testApp::mouseDragged(int x, int y, int button){
+void ofApp::mouseDragged(int x, int y, int button){
     lastMouseDownPos = mouseDownPos;
     mouseDownPos.x = ofMap(x, ofGetWidth()/2, ofGetWidth(), 0, 1);
     mouseDownPos.y = ofMap(y, 0, ofGetWidth()/2, 0, 1);
 }
 
 //--------------------------------------------------------------
-void testApp::mousePressed(int x, int y, int button){
+void ofApp::mousePressed(int x, int y, int button){
     mouseDownPos.x = ofMap(x, ofGetWidth()/2, ofGetWidth(), 0, 1);
     mouseDownPos.y = ofMap(y, 0, ofGetWidth()/2, 0, 1);
     lastMouseDownPos = mouseDownPos;

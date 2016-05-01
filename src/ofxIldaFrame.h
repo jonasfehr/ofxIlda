@@ -16,6 +16,7 @@
 #include "ofxIldaPoly.h"
 #include "ofxIldaPoint.h"
 #include "ofxIldaPolyProcessor.h"
+#include "ofxIldaMapper.h"
 
 
 namespace ofxIlda {
@@ -36,6 +37,7 @@ namespace ofxIlda {
                 bool doCapX;        // cap out of range on x (otherwise wraps around)
                 bool doCapY;        // cap out of range on y (otherwise wraps around)
                 struct {
+                    bool doMap;
                     bool doFlipX;
                     bool doFlipY;
                     ofVec2f offset;
@@ -43,6 +45,8 @@ namespace ofxIlda {
                 } transform;
             } output;
         } params;
+        
+        Mapper mapper;
         
         PolyProcessor polyProcessor; // params and functionality for processing the polys
         
@@ -72,6 +76,7 @@ namespace ofxIlda {
             params.output.doCapX = false;
             params.output.doCapY = false;
             
+            params.output.transform.doMap = false;
             params.output.transform.doFlipX = false;
             params.output.transform.doFlipY = false;
             params.output.transform.offset.set(0, 0);
@@ -82,7 +87,6 @@ namespace ofxIlda {
         //--------------------------------------------------------------
         string getString() {
             stringstream s;
-            s << polyProcessor.getString();
             
             s << "params:" << endl;
             s << "draw.lines : " << params.draw.lines << endl;
@@ -94,6 +98,7 @@ namespace ofxIlda {
             s << "output.endCount : " << params.output.endCount << endl;
             s << "output.doCapX : " << params.output.doCapX << endl;
             s << "output.doCapY : " << params.output.doCapY << endl;
+            s << "output.transform.doMap : " << params.output.transform.doMap << endl;
             s << "output.transform.doFlipX : " << params.output.transform.doFlipX << endl;
             s << "output.transform.doFlipY : " << params.output.transform.doFlipY << endl;
             s << "output.transform.offset : " << params.output.transform.offset << endl;
@@ -104,13 +109,25 @@ namespace ofxIlda {
             s << "stats:" << endl;
             s << "stats.pointCountOrig : " << stats.pointCountOrig << endl;
             s << "stats.pointCountProcessed : " << stats.pointCountProcessed << endl;
+            s << endl;
+            
+            s << polyProcessor.getString();
+            s << endl;
+            s << mapper.getString();
+
             
             return s.str();
         }
         
         //--------------------------------------------------------------
         void update() {
+            if(params.output.transform.doMap){
+                vector<Poly> mappedPolys;
+                mapper.update(origPolys, mappedPolys);
+                polyProcessor.update(mappedPolys, processedPolys);
+            } else {
             polyProcessor.update(origPolys, processedPolys);
+            }
 			
             // get stats
             stats.pointCountOrig = 0;
@@ -169,8 +186,12 @@ namespace ofxIlda {
                 }
             }
             
+            
             ofPopMatrix();
             ofPopStyle();
+            
+            mapper.draw();
+
         }
         
         //--------------------------------------------------------------

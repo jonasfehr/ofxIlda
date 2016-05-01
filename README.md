@@ -3,7 +3,7 @@ ofxIlda
 
 Introduction
 ------------
-C++ openFrameworks addon for a device agnostic Ilda functionality. Currently only tested with the Etherdream DAC (ofxEtherdream) on OSX. Builds on top of ofPolyline, so all ofPolyline functionality is inherited.
+C++ openFrameworks addon for a device agnostic Ilda functionality. Currently tested with the Etherdream DAC (ofxEtherdream) and the RayComposer DAC (ofxRayComposer) on OSX. Builds on top of ofPolyline, so all ofPolyline functionality is inherited.
 
 [https://vimeo.com/65929618](https://vimeo.com/65929618)
 
@@ -11,7 +11,7 @@ C++ openFrameworks addon for a device agnostic Ilda functionality. Currently onl
 Licence
 -------
 The code in this repository is available under the [MIT License](https://secure.wikimedia.org/wikipedia/en/wiki/Mit_license).  
-Copyright (c) 2008-2013 Memo Akten, [www.memo.tv](http://www.memo.tv)
+Copyright (c) 2008-2015 Memo Akten, [www.memo.tv](http://www.memo.tv)
 
 
 Installation
@@ -26,7 +26,7 @@ none
 
 Compatibility
 ------------
-openFrameworks 0074  
+openFrameworks 0.9.3  
 
 
 
