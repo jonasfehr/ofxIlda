@@ -106,8 +106,17 @@ void ofApp::keyPressed(int key){
         case 'G': ildaFrame.params.output.color.g = 1 - ildaFrame.params.output.color.g; break;
         case 'B': ildaFrame.params.output.color.b = 1 - ildaFrame.params.output.color.b; break;
 
+            
             // toggle draw lines (on screen only)
         case 'l': ildaFrame.params.draw.lines ^= true; break;
+            // toggle mapping;
+        case 'm': {
+            ildaFrame.mapper.params.bShow ^= true;
+            ildaFrame.mapper.params.bMouseEnabled ^= true;
+            ildaFrame.mapper.params.bKeyboardShortcuts ^= true;
+
+            break;
+        }
             
             // toggle loop for last poly
         case 'o': ildaFrame.getLastPoly().setClosed(ildaFrame.getLastPoly().isClosed()); break;

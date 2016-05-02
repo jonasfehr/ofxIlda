@@ -5,6 +5,7 @@
 //  Created by Jonas Fehr on 29/04/2016.
 //  inspired and based on ofxQuadWarp created by lukasz karluk on 19/06/11.
 //  https://github.com/julapy/ofxQuadWarp
+//  the reimplementation was needed, as the ILDA range is from 0. to 1. instead of the pixel on the canvas.
 //
 
 #pragma once
@@ -12,6 +13,7 @@
 #include "ofMain.h"
 #include "ofxIldaPoly.h"
 #include "ofxOpenCv.h"
+#include "ofxXmlSettings.h"
 
 namespace ofxIlda {
     class Mapper {
@@ -20,15 +22,27 @@ namespace ofxIlda {
             bool bMouseEnabled;
             bool bKeyboardShortcuts;
             bool bShow;
+            bool bAutoSave;
         } params;
         
         
         //--------------------------------------------------------------
         Mapper() {
+            memset(&params, 0, sizeof(params));
+            params.bMouseEnabled = false;
+            params.bKeyboardShortcuts = false;
+            params.bShow = false;
+            params.bAutoSave = true;
+            
+            
             srcPoints[0] = dstPoints[0] = dstPointsOld[0] = ofPoint(0,0);
             srcPoints[1] = dstPoints[1] = dstPointsOld[1] = ofPoint(1,0);
             srcPoints[2] = dstPoints[2] = dstPointsOld[2] = ofPoint(1,1);
             srcPoints[3] = dstPoints[3] = dstPointsOld[3] = ofPoint(0,1);
+            
+            if(params.bAutoSave){
+                load("settings/mapping.xml");
+            }
             
             position = ofVec2f(0,0);
             
@@ -39,7 +53,6 @@ namespace ofxIlda {
             selectedCornerIndex = -1;
             highlightCornerIndex = -1;
             
-            memset(&params, 0, sizeof(params));
             
             setup();
             
@@ -47,6 +60,10 @@ namespace ofxIlda {
         ~Mapper() {
             disableMouseControls();
             disableKeyboardShortcuts();
+            
+            if(params.bAutoSave){
+                save("settings/mapping.xml");
+            }
         }
         
         //----------------------------------------------------- setup.
@@ -71,10 +88,10 @@ namespace ofxIlda {
             s << "bKeyboardShortcuts : " << params.bKeyboardShortcuts << endl;
             s << "bShow : " << params.bShow << endl;
             s << endl;
-//            s << "dstPoint 1 : " << dstPoints[0] << endl;
-//            s << "dstPoint 2 : " << dstPoints[1] << endl;
-//            s << "dstPoint 3 : " << dstPoints[2] << endl;
-//            s << "dstPoint 4 : " << dstPoints[3] << endl;
+            //            s << "dstPoint 1 : " << dstPoints[0] << endl;
+            //            s << "dstPoint 2 : " << dstPoints[1] << endl;
+            //            s << "dstPoint 3 : " << dstPoints[2] << endl;
+            //            s << "dstPoint 4 : " << dstPoints[3] << endl;
             s << "selected Corner: " << selectedCornerIndex << endl;
             
             return s.str();
@@ -174,7 +191,7 @@ namespace ofxIlda {
                 return;
             }
             ofSetColor(ofColor::magenta);
-
+            
             for(int i=0; i<4; i++) {
                 int j = (i+1) % 4;
                 ofDrawLine(dstPoints[i].x * ofGetWidth() + position.x,
@@ -189,12 +206,12 @@ namespace ofxIlda {
                 return;
             }
             ofSetColor(ofColor::yellow);
-
+            
             for(int i=0; i<4; i++) {
                 ofPoint point;
                 point.x = dstPoints[i].x * ofGetWidth();
                 point.y = dstPoints[i].y * ofGetHeight();
-
+                
                 drawCornerAt(point);
             }
         }
@@ -207,7 +224,7 @@ namespace ofxIlda {
                 return;
             }
             ofSetColor(ofColor::magenta);
-
+            
             ofPoint point;
             point.x = dstPoints[highlightCornerIndex].x * ofGetWidth();
             point.y = dstPoints[highlightCornerIndex].y * ofGetHeight();
@@ -222,7 +239,7 @@ namespace ofxIlda {
                 return;
             }
             ofSetColor(ofColor::red);
-
+            
             ofPoint point;
             point.x = dstPoints[highlightCornerIndex].x * ofGetWidth();
             point.y = dstPoints[highlightCornerIndex].y * ofGetHeight();
@@ -239,6 +256,9 @@ namespace ofxIlda {
         //---------------------------------
         
     protected:
+        ofxXmlSettings settingsXML;
+        
+        
         ofPoint srcPoints[4] = {ofPoint(0,0),ofPoint(1,0),ofPoint(1,1),ofPoint(0,1)};
         ofPoint dstPoints[4];
         ofPoint dstPointsOld[4];
@@ -356,7 +376,9 @@ namespace ofxIlda {
             ofPoint mousePoint(mouseArgs.x, mouseArgs.y);
             mousePoint -= position;
             for(int i=0; i<4; i++) {
-                ofPoint & dstPoint = dstPoints[i];
+                ofPoint dstPoint;
+                dstPoint.x = dstPoints[i].x * ofGetWidth();
+                dstPoint.y = dstPoints[i].y * ofGetHeight();
                 if(mousePoint.distance(dstPoint) <= anchorSizeHalf) {
                     highlightCornerIndex = i;
                     return;
@@ -372,7 +394,9 @@ namespace ofxIlda {
             ofPoint mousePoint(mouseArgs.x, mouseArgs.y);
             mousePoint -= position;
             for(int i=0; i<4; i++) {
-                ofPoint & dstPoint = dstPoints[i];
+                ofPoint dstPoint;
+                dstPoint.x = dstPoints[i].x * ofGetWidth();
+                dstPoint.y = dstPoints[i].y * ofGetHeight();
                 if(mousePoint.distance(dstPoint) <= anchorSizeHalf) {
                     dstPoint.set(mousePoint);
                     selectedCornerIndex = i;
@@ -392,7 +416,7 @@ namespace ofxIlda {
             
             ofPoint mousePoint(mouseArgs.x, mouseArgs.y);
             mousePoint -= position;
-            dstPoints[selectedCornerIndex].set(mousePoint);
+            dstPoints[selectedCornerIndex].set(ofPoint(mousePoint.x/ofGetWidth(), mousePoint.y/ofGetHeight()));
         }
         void onMouseReleased(ofMouseEventArgs & mouseArgs) {
             if(params.bShow == false) {
@@ -404,7 +428,7 @@ namespace ofxIlda {
             
             ofPoint mousePoint(mouseArgs.x, mouseArgs.y);
             mousePoint -= position;
-            dstPoints[selectedCornerIndex].set(mousePoint);
+            dstPoints[selectedCornerIndex].set(ofPoint(mousePoint.x/ofGetWidth(), mousePoint.y/ofGetHeight()));
         }
         void keyPressed(ofKeyEventArgs & keyArgs){
             if(params.bShow == false) {
@@ -423,6 +447,9 @@ namespace ofxIlda {
                     break;
                 case '4':
                     selectedCornerIndex = 3;
+                    break;
+                case 'r':
+                    reset();
                     break;
                 default:
                     break;
@@ -451,6 +478,81 @@ namespace ofxIlda {
                 default:
                     break;
             }
+        }
+        //----------------------------------------------------- save / load.
+        void save(const string& path) {
+            ofXml xml;
+            xml.addChild("mapping");
+            xml.setTo("mapping");
+            xml.addChild("src");
+            xml.setTo("src");
+            for(int i=0; i<4; i++) {
+                xml.addChild("point");
+                xml.setToChild(i);
+                xml.setAttribute("x", ofToString(srcPoints[i].x));
+                xml.setAttribute("y", ofToString(srcPoints[i].y));
+                xml.setToParent();
+            }
+            xml.setToParent();
+            xml.addChild("dst");
+            xml.setTo("dst");
+            for(int i=0; i<4; i++) {
+                xml.addChild("point");
+                xml.setToChild(i);
+                xml.setAttribute("x", ofToString(dstPoints[i].x));
+                xml.setAttribute("y", ofToString(dstPoints[i].y));
+                xml.setToParent();
+            }
+            xml.setToParent();
+            
+            xml.setToParent();
+            xml.save(path);
+        }
+        
+        void load(const string& path) {
+            ofXml xml;
+            bool bOk = xml.load(path);
+            if(bOk == false) {
+                return;
+            }
+            
+            bOk = xml.setTo("mapping");
+            if(bOk == false) {
+                return;
+            }
+            
+            bOk = xml.setTo("src");
+            if(bOk == false) {
+                return;
+            }
+            
+            for(int i=0; i<xml.getNumChildren(); i++) {
+                bOk = xml.setToChild(i);
+                if(bOk == false) {
+                    continue;
+                }
+                srcPoints[i].x = ofToFloat(xml.getAttribute("x"));
+                srcPoints[i].y = ofToFloat(xml.getAttribute("y"));
+                xml.setToParent();
+            }
+            xml.setToParent();
+            
+            bOk = xml.setTo("dst");
+            if(bOk == false) {
+                return;
+            }
+            
+            for(int i=0; i<xml.getNumChildren(); i++) {
+                bOk = xml.setToChild(i);
+                if(bOk == false) {
+                    continue;
+                }
+                dstPoints[i].x = ofToFloat(xml.getAttribute("x"));
+                dstPoints[i].y = ofToFloat(xml.getAttribute("y"));
+                xml.setToParent();
+            }
+            xml.setToParent();
+            xml.setToParent();
         }
         
     };
