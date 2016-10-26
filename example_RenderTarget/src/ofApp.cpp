@@ -1,20 +1,5 @@
 #include "ofApp.h"
-#include "ofxSimpleGuiToo.h"
-#include "ofxIldaRenderTarget.h"
 
-
-// VARS
-ofxIlda::RenderTarget ildaFbo;
-ofxIlda::Frame ildaFrame;
-
-ofVec2f mouseDownPos;   // position of mouse (normalized)
-ofVec2f lastMouseDownPos; // last position of mouse (normalized)
-
-// PARAMS
-bool doSyphonIn;
-bool doFboClear;
-bool doDrawErase;   // whether we are erasing (true) or drawing (erase)
-int brushThickness;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -67,6 +52,9 @@ void ofApp::setup(){
     gui.addSlider("endCount", ildaFrame.params.output.endCount, 0, 100);
     gui.addToggle("doCapX", ildaFrame.params.output.doCapX);
     gui.addToggle("doCapY", ildaFrame.params.output.doCapY);
+    gui.addToggle("useColorMap",     ildaFrame.params.output.useColorMap);
+    gui.addToggle("doOutput",     doOutput);
+
     
     gui.addTitle("");
     gui.addContent("fbo", ildaFbo.getFbo());
@@ -80,11 +68,26 @@ void ofApp::setup(){
     
     syphonIn.setup();
     syphonIn.set("Main View","Modul8");
+    
+    ildaFrame.params.output.transform.doMap = true;
+    
+    ofImage colorMap;
+    colorMap.load("whiteCenter.jpg");
+    ildaFrame.params.output.colorMap = colorMap.getPixels();
+
 
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    ofFbo fboColorMap;
+    fboColorMap.allocate(512, 512);
+    fboColorMap.begin();
+    syphonIn.draw(0,0,fboColorMap.getWidth(), fboColorMap.getHeight());
+    fboColorMap.end();
+    
+    fboColorMap.readToPixels(ildaFrame.params.output.colorMap);
+
 }
 
 
@@ -108,6 +111,8 @@ void ofApp::drawInFbo() {
     }
     if(doSyphonIn){
         ofBackground(0);
+        ofEnableAlphaBlending();
+        ofEnableBlendMode(OF_BLENDMODE_ALPHA);
         syphonIn.draw(0,0, ildaFbo.getWidth(), ildaFbo.getHeight());
     }
     ildaFbo.end();
@@ -127,23 +132,24 @@ void ofApp::draw() {
     
     ildaFrame.update();
     
-    int dw = ofGetWidth()/2;
+    int dx = 3 * 220 + 5; // 3 x gui
+    int dy = 80; // height gui is drawn
+    
+    int dw = ofGetWidth() - dx - 20;
     int dh = dw;
-    int dx = ofGetWidth() - dw;
-    int dy = 0;
 
     ildaFbo.draw(dx, dy, dw, dh);
     
-    ofSetColor(0, 255, 0);
+//    ofSetColor(0, 255, 0);
     ildaFrame.draw(dx, dy, dw, dh);
     
-    ildaDAC.setPoints(ildaFrame);
+    if(doOutput)ildaDAC.setPoints(ildaFrame);
     
     // draw cursor
     ofEnableAlphaBlending();
     ofFill();
     ofSetColor(doDrawErase ? 0 : 255, 128);
-    float r = brushThickness/2 * ofGetWidth() /2 / ildaFbo.getWidth();
+    float r = brushThickness/2 * dx / ildaFbo.getWidth();
     ofDrawCircle(ofGetMouseX(), ofGetMouseY(), r);
     ofNoFill();
     ofSetColor(255, 128);
@@ -165,19 +171,39 @@ void ofApp::keyPressed(int key){
             
         case '-': if(brushThickness>1) brushThickness--; break;
         case 't': printf("mouse inside: %i\n", ildaFrame.getPoly(0).inside(mouseDownPos)); break; // test
+            // toggle mapping;
+        case 'm': {
+            ildaFrame.mapper.params.bShow ^= true;
+            ildaFrame.mapper.params.bMouseEnabled ^= true;
+            ildaFrame.mapper.params.bKeyboardShortcuts ^= true;
+            
+            break;
+        }
     }
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
+    int dx = 3 * 220 + 5; // 3 x gui
+    int dy = 80; // height gui is drawn
+    
+    int dw = ofGetWidth() - dx - 20;
+    int dh = dw;
+    
     lastMouseDownPos = mouseDownPos;
-    mouseDownPos.x = ofMap(x, ofGetWidth()/2, ofGetWidth(), 0, 1);
-    mouseDownPos.y = ofMap(y, 0, ofGetWidth()/2, 0, 1);
+    mouseDownPos.x = ofMap(x, dx, dx+dw, 0, 1);
+    mouseDownPos.y = ofMap(y, dy, dy+dh, 0, 1);
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-    mouseDownPos.x = ofMap(x, ofGetWidth()/2, ofGetWidth(), 0, 1);
-    mouseDownPos.y = ofMap(y, 0, ofGetWidth()/2, 0, 1);
+    int dx = 3 * 220 + 5; // 3 x gui
+    int dy = 80; // height gui is drawn
+    
+    int dw = ofGetWidth() - dx - 20;
+    int dh = dw;
+    
+    mouseDownPos.x = ofMap(x, dx, dx+dw, 0, 1);
+    mouseDownPos.y = ofMap(y, dy, dy+dh, 0, 1);
     lastMouseDownPos = mouseDownPos;
 }

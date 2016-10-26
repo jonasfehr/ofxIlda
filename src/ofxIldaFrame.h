@@ -32,10 +32,12 @@ namespace ofxIlda {
             
             struct {
                 ofFloatColor color; // color
+                ofPixels colorMap;
                 int blankCount;     // how many blank points to send at path ends
                 int endCount;       // how many end repeats to send
                 bool doCapX;        // cap out of range on x (otherwise wraps around)
                 bool doCapY;        // cap out of range on y (otherwise wraps around)
+                bool useColorMap;
                 struct {
                     bool doMap;
                     bool doFlipX;
@@ -71,10 +73,11 @@ namespace ofxIlda {
             params.draw.pointNumbers = false;
             
             params.output.color.set(1, 1, 1, 1);
-            params.output.blankCount = 30;
-            params.output.endCount = 30;
+            params.output.blankCount = 10;
+            params.output.endCount = 10;
             params.output.doCapX = false;
             params.output.doCapY = false;
+            params.output.useColorMap = true;//false;
             
             params.output.transform.doMap = false;
             params.output.transform.doFlipX = false;
@@ -176,12 +179,16 @@ namespace ofxIlda {
 					ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
                     
 					glBegin(GL_POINTS);
-                    for(int i=0; i<poly.size(); i++) {
-                        ofPoint &p = poly[i];
-                        //                Point &p = data[i];
-                        //                ofSetColor(p.r * 255, p.g * 255, p.b * 255, p.a * 255);
-                        glVertex2f(p.x, p.y);
+//                    for(int i=0; i<poly.size(); i++) {
+//                        ofPoint &p = poly[i];
+//                        glVertex2f(p.x, p.y);
+//                    }
+                    for(int i=0; i<points.size(); i++) {
+                        Point &p = points[i];
+                        ofSetColor(p.r / 256, p.g / 256, p.b / 255, p.a / 255);
+                        glVertex2f(ofMap(p.x, -32767, 32767, 0, 1), ofMap(p.y, -32767, 32767, 0, 1));
                     }
+
                     glEnd();
                 }
             }
@@ -190,7 +197,7 @@ namespace ofxIlda {
             ofPopMatrix();
             ofPopStyle();
             
-            mapper.draw();
+            mapper.draw(x,y,w,h);
 
         }
         
@@ -341,7 +348,7 @@ namespace ofxIlda {
             points.clear();
             for(int i=0; i<processedPolys.size(); i++) {
                 ofPolyline &poly = processedPolys[i];
-                ofFloatColor &pcolor = processedPolys[i].color;
+                ofFloatColor pointColor = processedPolys[i].color; // was &
                 
                 if(poly.size() > 0) {
                     
@@ -355,17 +362,20 @@ namespace ofxIlda {
                     
                     // repeat at start
                     for(int n=0; n<params.output.endCount; n++) {
-                        points.push_back( Point(startPoint, pcolor) );
+                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(startPoint.x*params.output.colorMap.getWidth(), startPoint.y*params.output.colorMap.getHeight()));
+                        points.push_back( Point(startPoint, pointColor) );
                     }
                     
                     // add points
                     for(int j=0; j<poly.size(); j++) {
-                        points.push_back( Point(transformPoint(poly[j]), pcolor) );
+                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(poly[j].x*params.output.colorMap.getWidth(), poly[j].y*params.output.colorMap.getHeight()));
+                        points.push_back( Point(transformPoint(poly[j]), pointColor) );
                     }
                     
                     // repeat at end
                     for(int n=0; n<params.output.endCount; n++) {
-                        points.push_back( Point(endPoint, pcolor) );
+                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(endPoint.x*params.output.colorMap.getWidth(), endPoint.y*params.output.colorMap.getHeight()));
+                        points.push_back( Point(endPoint, pointColor) );
                     }
                     
                     // blanking at end

@@ -13,7 +13,7 @@
     </Toggle_doDrawErase_x>
     <SliderInt_brushThickness>
         <name>brushThickness</name>
-        <value>7</value>
+        <value>3</value>
     </SliderInt_brushThickness>
     <SliderInt_cv.blurAmount>
         <name>cv.blurAmount</name>
@@ -21,11 +21,11 @@
     </SliderInt_cv.blurAmount>
     <SliderInt_cv.bottomThreshold>
         <name>cv.bottomThreshold</name>
-        <value>7</value>
+        <value>1</value>
     </SliderInt_cv.bottomThreshold>
     <SliderInt_cv.thresholdAmount>
         <name>cv.thresholdAmount</name>
-        <value>0</value>
+        <value>53</value>
     </SliderInt_cv.thresholdAmount>
     <SliderInt_adaptiveThresholdAmount>
         <name>adaptiveThresholdAmount</name>
@@ -45,11 +45,11 @@
     </Toggle_cv.doCanny>
     <SliderFloat_cv.cannyThresh1>
         <name>cv.cannyThresh1</name>
-        <value>0.000000000</value>
+        <value>3.199999809</value>
     </SliderFloat_cv.cannyThresh1>
     <SliderFloat_cv.cannyThresh2>
         <name>cv.cannyThresh2</name>
-        <value>2.299999952</value>
+        <value>7.149999619</value>
     </SliderFloat_cv.cannyThresh2>
     <SliderInt_cv.cannyWindow>
         <name>cv.cannyWindow</name>
@@ -61,31 +61,31 @@
     </Toggle_cv.doFindHoles>
     <SliderInt_path.smoothAmount>
         <name>path.smoothAmount</name>
-        <value>8</value>
+        <value>0</value>
     </SliderInt_path.smoothAmount>
     <Toggle_path.contourCollapse>
         <name>path.contourCollapse</name>
-        <value>0</value>
+        <value>1</value>
     </Toggle_path.contourCollapse>
     <SliderFloat_path.optimizeTolerance>
         <name>path.optimizeTolerance</name>
-        <value>0.015000000</value>
+        <value>0.000000000</value>
     </SliderFloat_path.optimizeTolerance>
     <SliderInt_path.targetPointCount>
         <name>path.targetPointCount</name>
-        <value>475</value>
+        <value>700</value>
     </SliderInt_path.targetPointCount>
     <SliderFloat_path.spacing>
         <name>path.spacing</name>
-        <value>0.003109271</value>
+        <value>0.005647321</value>
     </SliderFloat_path.spacing>
     <SliderInt_stats.pointCountOrig>
         <name>stats.pointCountOrig</name>
-        <value>427</value>
+        <value>1012</value>
     </SliderInt_stats.pointCountOrig>
     <SliderInt_stats.pointCountProcessed>
         <name>stats.pointCountProcessed</name>
-        <value>476</value>
+        <value>700</value>
     </SliderInt_stats.pointCountProcessed>
     <Toggle_doDrawFbo>
         <name>doDrawFbo</name>
@@ -93,11 +93,11 @@
     </Toggle_doDrawFbo>
     <SliderInt_fboAlpha>
         <name>fboAlpha</name>
-        <value>25</value>
+        <value>1</value>
     </SliderInt_fboAlpha>
     <Toggle_doDrawLineRaw>
         <name>doDrawLineRaw</name>
-        <value>1</value>
+        <value>0</value>
     </Toggle_doDrawLineRaw>
     <Toggle_doDrawIldaLines>
         <name>doDrawIldaLines</name>
@@ -114,17 +114,17 @@
     <ColorPicker_color>
         <name>color</name>
         <values_0>1.000000000</values_0>
-        <values_1>1.000000000</values_1>
+        <values_1>0.964999974</values_1>
         <values_2>1.000000000</values_2>
         <values_3>1.000000000</values_3>
     </ColorPicker_color>
     <SliderInt_blankCount>
         <name>blankCount</name>
-        <value>40</value>
+        <value>6</value>
     </SliderInt_blankCount>
     <SliderInt_endCount>
         <name>endCount</name>
-        <value>9</value>
+        <value>5</value>
     </SliderInt_endCount>
     <Toggle_doCapX>
         <name>doCapX</name>
@@ -134,4 +134,12 @@
         <name>doCapY</name>
         <value>0</value>
     </Toggle_doCapY>
+    <Toggle_useColorMap>
+        <name>useColorMap</name>
+        <value>0</value>
+    </Toggle_useColorMap>
+    <Toggle_doOutput>
+        <name>doOutput</name>
+        <value>0</value>
+    </Toggle_doOutput>
 </controls>

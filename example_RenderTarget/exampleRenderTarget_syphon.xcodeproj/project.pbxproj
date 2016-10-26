@@ -46,6 +46,11 @@
 		FF8AD52B1CCF91C90007D1F2 /* Syphon.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF8AD5211CCF91C90007D1F2 /* Syphon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		FF8AD52C1CCF91C90007D1F2 /* SyphonNameboundClient.m in Sources */ = {isa = PBXBuildFile; fileRef = FF8AD5241CCF91C90007D1F2 /* SyphonNameboundClient.m */; };
 		FFCDC1641CB728A500E97F0B /* librcdev.1.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FFCDC1631CB728A500E97F0B /* librcdev.1.4.0.dylib */; };
+		FFF4ABD51D006A1C009FAA04 /* ofxEtherdream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABC51D006A1C009FAA04 /* ofxEtherdream.cpp */; };
+		FFF4ABD61D006A1C009FAA04 /* etherdream.c in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABD01D006A1C009FAA04 /* etherdream.c */; };
+		FFF4ABD71D006A1C009FAA04 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABD21D006A1C009FAA04 /* Makefile */; };
+		FFF4ABD81D006A1C009FAA04 /* test.c in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABD31D006A1C009FAA04 /* test.c */; };
+		FFF4ABD91D006A1C009FAA04 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABD41D006A1C009FAA04 /* Makefile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -320,12 +325,25 @@
 		FF8AD5211CCF91C90007D1F2 /* Syphon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Syphon.framework; sourceTree = "<group>"; };
 		FF8AD5231CCF91C90007D1F2 /* SyphonNameboundClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SyphonNameboundClient.h; sourceTree = "<group>"; };
 		FF8AD5241CCF91C90007D1F2 /* SyphonNameboundClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SyphonNameboundClient.m; sourceTree = "<group>"; };
-		FFCDC0241CB7110600E97F0B /* ofxIldaFrame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaFrame.h; sourceTree = "<group>"; };
-		FFCDC0251CB7110600E97F0B /* ofxIldaPoint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPoint.h; sourceTree = "<group>"; };
-		FFCDC0261CB7110600E97F0B /* ofxIldaPoly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPoly.h; sourceTree = "<group>"; };
-		FFCDC0271CB7110600E97F0B /* ofxIldaPolyProcessor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPolyProcessor.h; sourceTree = "<group>"; };
-		FFCDC0281CB7110600E97F0B /* ofxIldaRenderTarget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaRenderTarget.h; sourceTree = "<group>"; };
 		FFCDC1631CB728A500E97F0B /* librcdev.1.4.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = librcdev.1.4.0.dylib; sourceTree = "<group>"; };
+		FFF4ABC51D006A1C009FAA04 /* ofxEtherdream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxEtherdream.cpp; sourceTree = "<group>"; };
+		FFF4ABC61D006A1C009FAA04 /* ofxEtherdream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxEtherdream.h; sourceTree = "<group>"; };
+		FFF4ABC91D006A1C009FAA04 /* fatfs_readme.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = fatfs_readme.txt; sourceTree = "<group>"; };
+		FFF4ABCA1D006A1C009FAA04 /* openocd.cfg */ = {isa = PBXFileReference; lastKnownFileType = text; path = openocd.cfg; sourceTree = "<group>"; };
+		FFF4ABCB1D006A1C009FAA04 /* protocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = protocol.h; sourceTree = "<group>"; };
+		FFF4ABCD1D006A1C009FAA04 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		FFF4ABCF1D006A1C009FAA04 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		FFF4ABD01D006A1C009FAA04 /* etherdream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = etherdream.c; sourceTree = "<group>"; };
+		FFF4ABD11D006A1C009FAA04 /* etherdream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = etherdream.h; sourceTree = "<group>"; };
+		FFF4ABD21D006A1C009FAA04 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		FFF4ABD31D006A1C009FAA04 /* test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = "<group>"; };
+		FFF4ABD41D006A1C009FAA04 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		FFF535521CFCCBDA00E7755C /* ofxIldaFrame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaFrame.h; sourceTree = "<group>"; };
+		FFF535531CFCCBDA00E7755C /* ofxIldaMapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaMapper.h; sourceTree = "<group>"; };
+		FFF535541CFCCBDA00E7755C /* ofxIldaPoint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPoint.h; sourceTree = "<group>"; };
+		FFF535551CFCCBDA00E7755C /* ofxIldaPoly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPoly.h; sourceTree = "<group>"; };
+		FFF535561CFCCBDA00E7755C /* ofxIldaPolyProcessor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPolyProcessor.h; sourceTree = "<group>"; };
+		FFF535571CFCCBDA00E7755C /* ofxIldaRenderTarget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaRenderTarget.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -353,13 +371,14 @@
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
-				FFCDC0221CB7110600E97F0B /* ofxIlda */,
 				FF8AD3CA1CCCDC320007D1F2 /* ofxRayComposer */,
 				FF8AD3E31CCF90110007D1F2 /* ofxSimpleGuiToo */,
 				FF8AD4171CCF901E0007D1F2 /* ofxMSAInteractiveObject */,
 				FF8AD41C1CCF902B0007D1F2 /* ofxXmlSettings */,
 				FF8AD4291CCF903F0007D1F2 /* ofxOpenCv */,
 				FF8AD5141CCF91C90007D1F2 /* ofxSyphon */,
+				FFF535501CFCCBDA00E7755C /* ofxIlda */,
+				FFF4ABC31D006A1C009FAA04 /* ofxEtherdream */,
 			);
 			name = addons;
 			sourceTree = "<group>";
@@ -1050,25 +1069,87 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		FFCDC0221CB7110600E97F0B /* ofxIlda */ = {
+		FFF4ABC31D006A1C009FAA04 /* ofxEtherdream */ = {
 			isa = PBXGroup;
 			children = (
-				FFCDC0231CB7110600E97F0B /* src */,
+				FFF4ABC41D006A1C009FAA04 /* src */,
+				FFF4ABC71D006A1C009FAA04 /* libs */,
+			);
+			name = ofxEtherdream;
+			sourceTree = "<group>";
+		};
+		FFF4ABC41D006A1C009FAA04 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABC51D006A1C009FAA04 /* ofxEtherdream.cpp */,
+				FFF4ABC61D006A1C009FAA04 /* ofxEtherdream.h */,
+			);
+			name = src;
+			path = ../../ofxEtherdream/src;
+			sourceTree = "<group>";
+		};
+		FFF4ABC71D006A1C009FAA04 /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABC81D006A1C009FAA04 /* common */,
+				FFF4ABCC1D006A1C009FAA04 /* driver */,
+			);
+			name = libs;
+			path = ../../ofxEtherdream/libs;
+			sourceTree = "<group>";
+		};
+		FFF4ABC81D006A1C009FAA04 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABC91D006A1C009FAA04 /* fatfs_readme.txt */,
+				FFF4ABCA1D006A1C009FAA04 /* openocd.cfg */,
+				FFF4ABCB1D006A1C009FAA04 /* protocol.h */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		FFF4ABCC1D006A1C009FAA04 /* driver */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABCD1D006A1C009FAA04 /* .gitignore */,
+				FFF4ABCE1D006A1C009FAA04 /* libetherdream */,
+				FFF4ABD41D006A1C009FAA04 /* Makefile */,
+			);
+			path = driver;
+			sourceTree = "<group>";
+		};
+		FFF4ABCE1D006A1C009FAA04 /* libetherdream */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABCF1D006A1C009FAA04 /* .gitignore */,
+				FFF4ABD01D006A1C009FAA04 /* etherdream.c */,
+				FFF4ABD11D006A1C009FAA04 /* etherdream.h */,
+				FFF4ABD21D006A1C009FAA04 /* Makefile */,
+				FFF4ABD31D006A1C009FAA04 /* test.c */,
+			);
+			path = libetherdream;
+			sourceTree = "<group>";
+		};
+		FFF535501CFCCBDA00E7755C /* ofxIlda */ = {
+			isa = PBXGroup;
+			children = (
+				FFF535511CFCCBDA00E7755C /* src */,
 			);
 			name = ofxIlda;
 			sourceTree = "<group>";
 		};
-		FFCDC0231CB7110600E97F0B /* src */ = {
+		FFF535511CFCCBDA00E7755C /* src */ = {
 			isa = PBXGroup;
 			children = (
-				FFCDC0241CB7110600E97F0B /* ofxIldaFrame.h */,
-				FFCDC0251CB7110600E97F0B /* ofxIldaPoint.h */,
-				FFCDC0261CB7110600E97F0B /* ofxIldaPoly.h */,
-				FFCDC0271CB7110600E97F0B /* ofxIldaPolyProcessor.h */,
-				FFCDC0281CB7110600E97F0B /* ofxIldaRenderTarget.h */,
+				FFF535521CFCCBDA00E7755C /* ofxIldaFrame.h */,
+				FFF535531CFCCBDA00E7755C /* ofxIldaMapper.h */,
+				FFF535541CFCCBDA00E7755C /* ofxIldaPoint.h */,
+				FFF535551CFCCBDA00E7755C /* ofxIldaPoly.h */,
+				FFF535561CFCCBDA00E7755C /* ofxIldaPolyProcessor.h */,
+				FFF535571CFCCBDA00E7755C /* ofxIldaRenderTarget.h */,
 			);
 			name = src;
-			path = ../../ofxIlda/src;
+			path = ../src;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1164,6 +1245,7 @@
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				FF8AD5271CCF91C90007D1F2 /* ofxSyphonClient.mm in Sources */,
 				FF8AD52C1CCF91C90007D1F2 /* SyphonNameboundClient.m in Sources */,
+				FFF4ABD71D006A1C009FAA04 /* Makefile in Sources */,
 				FF8AD40F1CCF90110007D1F2 /* ofxSimpleGuiSlider2d.cpp in Sources */,
 				FF8AD4261CCF902B0007D1F2 /* tinyxml.cpp in Sources */,
 				FF8AD40E1CCF90110007D1F2 /* ofxSimpleGuiQuadWarp.cpp in Sources */,
@@ -1182,14 +1264,18 @@
 				FF8AD40D1CCF90110007D1F2 /* ofxSimpleGuiMovieSlider.cpp in Sources */,
 				FF8AD4161CCF90110007D1F2 /* ofxSimpleGuiValueControl.cpp in Sources */,
 				FF8AD40B1CCF90110007D1F2 /* ofxSimpleGuiContent.cpp in Sources */,
+				FFF4ABD81D006A1C009FAA04 /* test.c in Sources */,
 				FF8AD5111CCF903F0007D1F2 /* ofxCvShortImage.cpp in Sources */,
 				FF8AD4131CCF90110007D1F2 /* ofxSimpleGuiControl.cpp in Sources */,
+				FFF4ABD51D006A1C009FAA04 /* ofxEtherdream.cpp in Sources */,
 				FF8AD50F1CCF903F0007D1F2 /* ofxCvHaarFinder.cpp in Sources */,
 				FF8AD4141CCF90110007D1F2 /* ofxSimpleGuiPage.cpp in Sources */,
 				FF8AD50B1CCF903F0007D1F2 /* ofxCvColorImage.cpp in Sources */,
+				FFF4ABD61D006A1C009FAA04 /* etherdream.c in Sources */,
 				FF8AD4081CCF90110007D1F2 /* ofxSimpleGuiButton.cpp in Sources */,
 				FF8AD4251CCF902B0007D1F2 /* ofxXmlSettings.cpp in Sources */,
 				FF8AD5101CCF903F0007D1F2 /* ofxCvImage.cpp in Sources */,
+				FFF4ABD91D006A1C009FAA04 /* Makefile in Sources */,
 				FF8AD41B1CCF901E0007D1F2 /* ofxMSAInteractiveObject.cpp in Sources */,
 				FF8AD5281CCF91C90007D1F2 /* ofxSyphonServer.mm in Sources */,
 			);
@@ -1289,7 +1375,7 @@
 					"$(PROJECT_DIR)/src",
 				);
 				PRODUCT_NAME = exampleRenderTarget_syphonDebug;
-				USER_HEADER_SEARCH_PATHS = "../../ofxOpenCv/libs/opencv/include/ ../../ofxRayComposer/libs/rcdev/include/ ../libs/rcdev/include/";
+				USER_HEADER_SEARCH_PATHS = "../../ofxCv/libs/ofxCv/include/ ../libs/rcdev/include/ ../../ofxRayComposer/libs/rcdev/include/ ../../ofxCv/libs/CLD/include/ ../../ofxOpenCv/libs/opencv/include/ ../../ofxCv/../ofxOpenCv/libs/opencv/include";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1318,7 +1404,7 @@
 					"$(PROJECT_DIR)/src",
 				);
 				PRODUCT_NAME = exampleRenderTarget_syphonDebug;
-				USER_HEADER_SEARCH_PATHS = "../../ofxOpenCv/libs/opencv/include/ ../../ofxRayComposer/libs/rcdev/include/ ../libs/rcdev/include/";
+				USER_HEADER_SEARCH_PATHS = "../../ofxCv/libs/ofxCv/include/ ../libs/rcdev/include/ ../../ofxRayComposer/libs/rcdev/include/ ../../ofxCv/libs/CLD/include/ ../../ofxOpenCv/libs/opencv/include/ ../../ofxCv/../ofxOpenCv/libs/opencv/include";
 				WRAPPER_EXTENSION = app;
 				baseConfigurationReference = E4EB6923138AFD0F00A09F29;
 			};

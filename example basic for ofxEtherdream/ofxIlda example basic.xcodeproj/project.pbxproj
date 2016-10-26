@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 44;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -30,6 +30,10 @@
 		E7E077E515D3B63C0020DFD4 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7E077E415D3B63C0020DFD4 /* CoreVideo.framework */; };
 		E7E077E815D3B6510020DFD4 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7E077E715D3B6510020DFD4 /* QTKit.framework */; };
 		E7F985F815E0DEA3003869B5 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7F985F515E0DE99003869B5 /* Accelerate.framework */; };
+		FFF4ABE41D006C8D009FAA04 /* ofxXmlSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABDD1D006C8D009FAA04 /* ofxXmlSettings.cpp */; };
+		FFF4ABE51D006C8D009FAA04 /* tinyxml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABE01D006C8D009FAA04 /* tinyxml.cpp */; };
+		FFF4ABE61D006C8D009FAA04 /* tinyxmlerror.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABE21D006C8D009FAA04 /* tinyxmlerror.cpp */; };
+		FFF4ABE71D006C8D009FAA04 /* tinyxmlparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFF4ABE31D006C8D009FAA04 /* tinyxmlparser.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,15 +70,9 @@
 		00e96a571c2f3af1c40a21c6bca8bed7 /* test.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 30; name = test.c; path = ../../../addons/ofxEtherDream/libs/driver/libetherdream/test.c; sourceTree = SOURCE_ROOT; };
 		113a584a4e6e2f1a960cc7d6a6aa0413 /* etherdream.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 30; name = etherdream.c; path = ../../../addons/ofxEtherDream/libs/driver/libetherdream/etherdream.c; sourceTree = SOURCE_ROOT; };
 		2bfb904e4d4648d55a12f9015e5e0a75 /* ofxEtherdream.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxEtherdream.h; path = ../../../addons/ofxEtherDream/src/ofxEtherdream.h; sourceTree = SOURCE_ROOT; };
-		3479f59cf46e8638fc4fece264e67994 /* ofxIldaPoint.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxIldaPoint.h; path = ../../../addons/ofxIlda/src/ofxIldaPoint.h; sourceTree = SOURCE_ROOT; };
 		3b906433bea2a463e0874d2fa822f937 /* etherdream.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = etherdream.h; path = ../../../addons/ofxEtherDream/libs/driver/libetherdream/etherdream.h; sourceTree = SOURCE_ROOT; };
 		5f7b2fa46bb57f9a6dd29ef546812c78 /* protocol.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = protocol.h; path = ../../../addons/ofxEtherDream/libs/common/protocol.h; sourceTree = SOURCE_ROOT; };
-		89d5795eec647196e421147a2d02e231 /* ofxIldaFrame.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxIldaFrame.h; path = ../../../addons/ofxIlda/src/ofxIldaFrame.h; sourceTree = SOURCE_ROOT; };
-		BB48198A175B71540033EAA0 /* ofxIldaPoly.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofxIldaPoly.h; path = ../src/ofxIldaPoly.h; sourceTree = "<group>"; };
-		BB48198B175B715A0033EAA0 /* ofxIldaPolyProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofxIldaPolyProcessor.h; path = ../src/ofxIldaPolyProcessor.h; sourceTree = "<group>"; };
 		BBAB23BE13894E4700AA2426 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = ../../../libs/glut/lib/osx/GLUT.framework; sourceTree = "<group>"; };
-		BBB77815174114BF000704A0 /* license.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.md; path = ../license.md; sourceTree = "<group>"; };
-		BBB77816174114C0000704A0 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		BBB77817174114CB000704A0 /* license.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.md; path = ../../ofxEtherDream/license.md; sourceTree = "<group>"; };
 		BBB77818174114CB000704A0 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.md; path = ../../ofxEtherDream/README.md; sourceTree = "<group>"; };
 		E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openFrameworksLib.xcodeproj; path = ../../../libs/openFrameworksCompiled/project/osx/openFrameworksLib.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -100,7 +98,18 @@
 		E7E077E415D3B63C0020DFD4 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		E7E077E715D3B6510020DFD4 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
 		E7F985F515E0DE99003869B5 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = /System/Library/Frameworks/Accelerate.framework; sourceTree = "<absolute>"; };
-		c0ca360e2a954d03df99afb316ef0335 /* ofxIldaRenderTarget.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxIldaRenderTarget.h; path = ../../../addons/ofxIlda/src/ofxIldaRenderTarget.h; sourceTree = SOURCE_ROOT; };
+		FFF4ABDD1D006C8D009FAA04 /* ofxXmlSettings.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxXmlSettings.cpp; sourceTree = "<group>"; };
+		FFF4ABDE1D006C8D009FAA04 /* ofxXmlSettings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxXmlSettings.h; sourceTree = "<group>"; };
+		FFF4ABE01D006C8D009FAA04 /* tinyxml.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxml.cpp; sourceTree = "<group>"; };
+		FFF4ABE11D006C8D009FAA04 /* tinyxml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tinyxml.h; sourceTree = "<group>"; };
+		FFF4ABE21D006C8D009FAA04 /* tinyxmlerror.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlerror.cpp; sourceTree = "<group>"; };
+		FFF4ABE31D006C8D009FAA04 /* tinyxmlparser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlparser.cpp; sourceTree = "<group>"; };
+		FFF4ABEA1D006D7D009FAA04 /* ofxIldaFrame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaFrame.h; sourceTree = "<group>"; };
+		FFF4ABEB1D006D7D009FAA04 /* ofxIldaMapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaMapper.h; sourceTree = "<group>"; };
+		FFF4ABEC1D006D7D009FAA04 /* ofxIldaPoint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPoint.h; sourceTree = "<group>"; };
+		FFF4ABED1D006D7D009FAA04 /* ofxIldaPoly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPoly.h; sourceTree = "<group>"; };
+		FFF4ABEE1D006D7D009FAA04 /* ofxIldaPolyProcessor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaPolyProcessor.h; sourceTree = "<group>"; };
+		FFF4ABEF1D006D7D009FAA04 /* ofxIldaRenderTarget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxIldaRenderTarget.h; sourceTree = "<group>"; };
 		dc4fac49ca93f0e901c63219ef7f6833 /* ofxEtherdream.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = ofxEtherdream.cpp; path = ../../../addons/ofxEtherDream/src/ofxEtherdream.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -168,18 +177,6 @@
 			name = libs;
 			sourceTree = "<group>";
 		};
-		6894321556b8d4ebfb6234c4286b59d3 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				BB48198B175B715A0033EAA0 /* ofxIldaPolyProcessor.h */,
-				BB48198A175B71540033EAA0 /* ofxIldaPoly.h */,
-				89d5795eec647196e421147a2d02e231 /* ofxIldaFrame.h */,
-				3479f59cf46e8638fc4fece264e67994 /* ofxIldaPoint.h */,
-				c0ca360e2a954d03df99afb316ef0335 /* ofxIldaRenderTarget.h */,
-			);
-			name = src;
-			sourceTree = "<group>";
-		};
 		697c6b0bf9b67a1946c932c73a1c8592 /* common */ = {
 			isa = PBXGroup;
 			children = (
@@ -199,21 +196,12 @@
 			name = ofxEtherDream;
 			sourceTree = "<group>";
 		};
-		8147f44d8e1384efc607cc71aeecf99e /* ofxIlda */ = {
-			isa = PBXGroup;
-			children = (
-				BBB77815174114BF000704A0 /* license.md */,
-				BBB77816174114C0000704A0 /* README.md */,
-				6894321556b8d4ebfb6234c4286b59d3 /* src */,
-			);
-			name = ofxIlda;
-			sourceTree = "<group>";
-		};
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
 				6adb0d86bf07ad7851f0dc03477fb138 /* ofxEtherDream */,
-				8147f44d8e1384efc607cc71aeecf99e /* ofxIlda */,
+				FFF4ABDB1D006C8D009FAA04 /* ofxXmlSettings */,
+				FFF4ABE81D006D7D009FAA04 /* ofxIlda */,
 			);
 			name = addons;
 			sourceTree = "<group>";
@@ -297,6 +285,59 @@
 			name = openFrameworks;
 			sourceTree = "<group>";
 		};
+		FFF4ABDB1D006C8D009FAA04 /* ofxXmlSettings */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABDC1D006C8D009FAA04 /* src */,
+				FFF4ABDF1D006C8D009FAA04 /* libs */,
+			);
+			name = ofxXmlSettings;
+			sourceTree = "<group>";
+		};
+		FFF4ABDC1D006C8D009FAA04 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABDD1D006C8D009FAA04 /* ofxXmlSettings.cpp */,
+				FFF4ABDE1D006C8D009FAA04 /* ofxXmlSettings.h */,
+			);
+			name = src;
+			path = ../../ofxXmlSettings/src;
+			sourceTree = "<group>";
+		};
+		FFF4ABDF1D006C8D009FAA04 /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABE01D006C8D009FAA04 /* tinyxml.cpp */,
+				FFF4ABE11D006C8D009FAA04 /* tinyxml.h */,
+				FFF4ABE21D006C8D009FAA04 /* tinyxmlerror.cpp */,
+				FFF4ABE31D006C8D009FAA04 /* tinyxmlparser.cpp */,
+			);
+			name = libs;
+			path = ../../ofxXmlSettings/libs;
+			sourceTree = "<group>";
+		};
+		FFF4ABE81D006D7D009FAA04 /* ofxIlda */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABE91D006D7D009FAA04 /* src */,
+			);
+			name = ofxIlda;
+			sourceTree = "<group>";
+		};
+		FFF4ABE91D006D7D009FAA04 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				FFF4ABEA1D006D7D009FAA04 /* ofxIldaFrame.h */,
+				FFF4ABEB1D006D7D009FAA04 /* ofxIldaMapper.h */,
+				FFF4ABEC1D006D7D009FAA04 /* ofxIldaPoint.h */,
+				FFF4ABED1D006D7D009FAA04 /* ofxIldaPoly.h */,
+				FFF4ABEE1D006D7D009FAA04 /* ofxIldaPolyProcessor.h */,
+				FFF4ABEF1D006D7D009FAA04 /* ofxIldaRenderTarget.h */,
+			);
+			name = src;
+			path = ../src;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -324,6 +365,8 @@
 /* Begin PBXProject section */
 		E4B69B4C0A3A1720003C02F2 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = E4B69B4D0A3A1720003C02F2 /* Build configuration list for PBXProject "ofxIlda example basic" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
@@ -381,9 +424,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FFF4ABE61D006C8D009FAA04 /* tinyxmlerror.cpp in Sources */,
+				FFF4ABE71D006C8D009FAA04 /* tinyxmlparser.cpp in Sources */,
+				FFF4ABE41D006C8D009FAA04 /* ofxXmlSettings.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* testApp.cpp in Sources */,
 				6982c5b107f4648b67ed2b75befa0ac7 /* ofxEtherdream.cpp in Sources */,
+				FFF4ABE51D006C8D009FAA04 /* tinyxml.cpp in Sources */,
 				10563d89dec15b627e5b06892c273346 /* etherdream.c in Sources */,
 				7b09659f724914b48997e0f9382268df /* test.c in Sources */,
 			);
@@ -562,6 +609,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)Debug";
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -648,6 +696,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

@@ -7,12 +7,14 @@
 //  https://github.com/julapy/ofxQuadWarp
 //  the reimplementation was needed, as the ILDA range is from 0. to 1. instead of the pixel on the canvas.
 //
+//  instead of using ofCv homography, used the version provided in ofxHomography by Paulo Barcelos
+//  https://github.com/paulobarcelos/ofxHomography
+
 
 #pragma once
 
 #include "ofMain.h"
 #include "ofxIldaPoly.h"
-#include "ofxOpenCv.h"
 #include "ofxXmlSettings.h"
 
 namespace ofxIlda {
@@ -32,7 +34,7 @@ namespace ofxIlda {
             params.bMouseEnabled = false;
             params.bKeyboardShortcuts = false;
             params.bShow = false;
-            params.bAutoSave = true;
+            params.bAutoSave = false;
             
             
             srcPoints[0] = dstPoints[0] = dstPointsOld[0] = ofPoint(0,0);
@@ -45,8 +47,9 @@ namespace ofxIlda {
             }
             
             position = ofVec2f(0,0);
+            size = ofVec2f(ofGetWidth(), ofGetHeight());
             
-            matrix = getMatrix();
+            matrix = getMatrix(&srcPoints[0], &dstPoints[0]);
             
             anchorSize = 10;
             anchorSizeHalf = anchorSize * 0.5;
@@ -101,7 +104,7 @@ namespace ofxIlda {
         void update(const vector<Poly> &origPolys, vector<Poly> &mappedPolys) {
             for(int i = 0; i<4; i++){ // avoid calculating matrix each timeM
                 if(dstPoints[i]!=dstPointsOld[i]){
-                    matrix = getMatrix();
+                    matrix = getMatrix(&srcPoints[0], &dstPoints[0]);
                     dstPointsOld[i] = dstPoints[i];
                     i = 4; // matrix is recalculated;
                 }
@@ -175,10 +178,20 @@ namespace ofxIlda {
         
         // DRAW funktions
         //----------------------------------------------------- show / hide.
-        void draw() {
+        void draw(float x = 0, float y = 0, float w = ofGetWidth(), float h = ofGetHeight()) {
             if(params.bShow == false) {
                 return;
             }
+            
+            mox = x;
+            moy = y;
+            mow = w;
+            moh = h;
+            
+            position.x = x;
+            position.y = y;
+            size.x = w;
+            size.y = h;
             
             drawQuadOutline();
             drawCorners();
@@ -194,10 +207,10 @@ namespace ofxIlda {
             
             for(int i=0; i<4; i++) {
                 int j = (i+1) % 4;
-                ofDrawLine(dstPoints[i].x * ofGetWidth() + position.x,
-                           dstPoints[i].y * ofGetHeight() + position.y,
-                           dstPoints[j].x * ofGetWidth() + position.x,
-                           dstPoints[j].y * ofGetHeight() + position.y);
+                ofDrawLine(dstPoints[i].x * size.x + position.x,
+                           dstPoints[i].y * size.y + position.y,
+                           dstPoints[j].x * size.x + position.x,
+                           dstPoints[j].y * size.y + position.y);
             }
         }
         
@@ -209,8 +222,8 @@ namespace ofxIlda {
             
             for(int i=0; i<4; i++) {
                 ofPoint point;
-                point.x = dstPoints[i].x * ofGetWidth();
-                point.y = dstPoints[i].y * ofGetHeight();
+                point.x = dstPoints[i].x * size.x;
+                point.y = dstPoints[i].y * size.y;
                 
                 drawCornerAt(point);
             }
@@ -226,8 +239,8 @@ namespace ofxIlda {
             ofSetColor(ofColor::magenta);
             
             ofPoint point;
-            point.x = dstPoints[highlightCornerIndex].x * ofGetWidth();
-            point.y = dstPoints[highlightCornerIndex].y * ofGetHeight();
+            point.x = dstPoints[highlightCornerIndex].x * size.x;
+            point.y = dstPoints[highlightCornerIndex].y * size.y;
             drawCornerAt(point);
         }
         
@@ -241,8 +254,8 @@ namespace ofxIlda {
             ofSetColor(ofColor::red);
             
             ofPoint point;
-            point.x = dstPoints[highlightCornerIndex].x * ofGetWidth();
-            point.y = dstPoints[highlightCornerIndex].y * ofGetHeight();
+            point.x = dstPoints[highlightCornerIndex].x * size.x;
+            point.y = dstPoints[highlightCornerIndex].y * size.y;
             drawCornerAt(point);
         }
         
@@ -265,103 +278,11 @@ namespace ofxIlda {
         
         ofMatrix4x4 matrix;
         
-        // get Matrix function is directly copied from ofxQuadWarp
-        ofMatrix4x4 getMatrix() const {
-            return getMatrix(&srcPoints[0], &dstPoints[0]);
-        }
-        ofMatrix4x4 getMatrix(const ofPoint* srcPoints, const ofPoint* dstPoints) const {
-            
-            CvPoint2D32f cvsrc[4];
-            CvPoint2D32f cvdst[4];
-            
-            //we set the warp coordinates
-            //source coordinates as the dimensions of our window
-            cvsrc[0].x = srcPoints[0].x;
-            cvsrc[0].y = srcPoints[0].y;
-            cvsrc[1].x = srcPoints[1].x;
-            cvsrc[1].y = srcPoints[1].y;
-            cvsrc[2].x = srcPoints[2].x;
-            cvsrc[2].y = srcPoints[2].y;
-            cvsrc[3].x = srcPoints[3].x;
-            cvsrc[3].y = srcPoints[3].y;
-            
-            cvdst[0].x = dstPoints[0].x;
-            cvdst[0].y = dstPoints[0].y;
-            cvdst[1].x = dstPoints[1].x;
-            cvdst[1].y = dstPoints[1].y;
-            cvdst[2].x = dstPoints[2].x;
-            cvdst[2].y = dstPoints[2].y;
-            cvdst[3].x = dstPoints[3].x;
-            cvdst[3].y = dstPoints[3].y;
-            
-            //we create a matrix that will store the results
-            //from openCV - this is a 3x3 2D matrix that is
-            //row ordered
-            CvMat * translate = cvCreateMat(3,3,CV_32FC1);
-            
-            //this is the slightly easier - but supposidly less
-            //accurate warping method
-            //cvWarpPerspectiveQMatrix(cvsrc, cvdst, translate);
-            
-            
-            //for the more accurate method we need to create
-            //a couple of matrixes that just act as containers
-            //to store our points  - the nice thing with this
-            //method is you can give it more than four points!
-            
-            CvMat* src_mat = cvCreateMat(4, 2, CV_32FC1);
-            CvMat* dst_mat = cvCreateMat(4, 2, CV_32FC1);
-            
-            //copy our points into the matrixes
-            cvSetData(src_mat, cvsrc, sizeof(CvPoint2D32f));
-            cvSetData(dst_mat, cvdst, sizeof(CvPoint2D32f));
-            
-            //figure out the warping!
-            //warning - older versions of openCV had a bug
-            //in this function.
-            cvFindHomography(src_mat, dst_mat, translate);
-            
-            //get the matrix as a list of floats
-            float *mat = translate->data.fl;
-            
-            
-            //we need to copy these values
-            //from the 3x3 2D openCV matrix which is row ordered
-            //
-            // ie:   [0][1][2] x
-            //       [3][4][5] y
-            //       [6][7][8] w
-            
-            //to openGL's 4x4 3D column ordered matrix
-            //        x  y  z  w
-            // ie:   [0][3][ ][6]
-            //       [1][4][ ][7]
-            //		 [ ][ ][ ][ ]
-            //       [2][5][ ][9]
-            //
-            
-            ofMatrix4x4 matrixTemp;
-            matrixTemp.getPtr()[0]  = mat[0];
-            matrixTemp.getPtr()[4]  = mat[1];
-            matrixTemp.getPtr()[12] = mat[2];
-            
-            matrixTemp.getPtr()[1]  = mat[3];
-            matrixTemp.getPtr()[5]  = mat[4];
-            matrixTemp.getPtr()[13] = mat[5];
-            
-            matrixTemp.getPtr()[3]  = mat[6];
-            matrixTemp.getPtr()[7]  = mat[7];
-            matrixTemp.getPtr()[15] = mat[8];
-            
-            cvReleaseMat(&translate);
-            cvReleaseMat(&src_mat);
-            cvReleaseMat(&dst_mat);
-            
-            return matrixTemp;
-        }
+        float mox, moy, mow, moh; // mouse offset
         
         //interaction
         ofPoint position;
+        ofVec2f size;
         
         float anchorSize;
         float anchorSizeHalf;
@@ -377,8 +298,8 @@ namespace ofxIlda {
             mousePoint -= position;
             for(int i=0; i<4; i++) {
                 ofPoint dstPoint;
-                dstPoint.x = dstPoints[i].x * ofGetWidth();
-                dstPoint.y = dstPoints[i].y * ofGetHeight();
+                dstPoint.x = dstPoints[i].x * size.x;
+                dstPoint.y = dstPoints[i].y * size.y;
                 if(mousePoint.distance(dstPoint) <= anchorSizeHalf) {
                     highlightCornerIndex = i;
                     return;
@@ -395,8 +316,8 @@ namespace ofxIlda {
             mousePoint -= position;
             for(int i=0; i<4; i++) {
                 ofPoint dstPoint;
-                dstPoint.x = dstPoints[i].x * ofGetWidth();
-                dstPoint.y = dstPoints[i].y * ofGetHeight();
+                dstPoint.x = dstPoints[i].x * size.x;
+                dstPoint.y = dstPoints[i].y * size.y;
                 if(mousePoint.distance(dstPoint) <= anchorSizeHalf) {
                     dstPoint.set(mousePoint);
                     selectedCornerIndex = i;
@@ -416,7 +337,7 @@ namespace ofxIlda {
             
             ofPoint mousePoint(mouseArgs.x, mouseArgs.y);
             mousePoint -= position;
-            dstPoints[selectedCornerIndex].set(ofPoint(mousePoint.x/ofGetWidth(), mousePoint.y/ofGetHeight()));
+            dstPoints[selectedCornerIndex].set(ofPoint(mousePoint.x/size.x, mousePoint.y/size.y));
         }
         void onMouseReleased(ofMouseEventArgs & mouseArgs) {
             if(params.bShow == false) {
@@ -428,7 +349,7 @@ namespace ofxIlda {
             
             ofPoint mousePoint(mouseArgs.x, mouseArgs.y);
             mousePoint -= position;
-            dstPoints[selectedCornerIndex].set(ofPoint(mousePoint.x/ofGetWidth(), mousePoint.y/ofGetHeight()));
+            dstPoints[selectedCornerIndex].set(ofPoint(mousePoint.x/size.x, mousePoint.y/size.y));
         }
         void keyPressed(ofKeyEventArgs & keyArgs){
             if(params.bShow == false) {
@@ -555,5 +476,142 @@ namespace ofxIlda {
             xml.setToParent();
         }
         
+        // --- functions borrowed from ofxHomography ---
+        // https://github.com/paulobarcelos/ofxHomography
+        /*
+         * Homography Functions adapted from:
+         * http://www.openframeworks.cc/forum/viewtopic.php?p=22611
+         * Author: arturo castro
+         */
+        static void gaussian_elimination(float *input, int n){
+            // ported to c from pseudocode in
+            // http://en.wikipedia.org/wiki/Gaussian_elimination
+            
+            float * A = input;
+            int i = 0;
+            int j = 0;
+            int m = n-1;
+            while (i < m && j < n){
+                // Find pivot in column j, starting in row i:
+                int maxi = i;
+                for(int k = i+1; k<m; k++){
+                    if(fabs(A[k*n+j]) > fabs(A[maxi*n+j])){
+                        maxi = k;
+                    }
+                }
+                if (A[maxi*n+j] != 0){
+                    //swap rows i and maxi, but do not change the value of i
+                    if(i!=maxi)
+                        for(int k=0;k<n;k++){
+                            float aux = A[i*n+k];
+                            A[i*n+k]=A[maxi*n+k];
+                            A[maxi*n+k]=aux;
+                        }
+                    //Now A[i,j] will contain the old value of A[maxi,j].
+                    //divide each entry in row i by A[i,j]
+                    float A_ij=A[i*n+j];
+                    for(int k=0;k<n;k++){
+                        A[i*n+k]/=A_ij;
+                    }
+                    //Now A[i,j] will have the value 1.
+                    for(int u = i+1; u< m; u++){
+                        //subtract A[u,j] * row i from row u
+                        float A_uj = A[u*n+j];
+                        for(int k=0;k<n;k++){
+                            A[u*n+k]-=A_uj*A[i*n+k];
+                        }
+                        //Now A[u,j] will be 0, since A[u,j] - A[i,j] * A[u,j] = A[u,j] - 1 * A[u,j] = 0.
+                    }
+                    
+                    i++;
+                }
+                j++;
+            }
+            
+            //back substitution
+            for(int i=m-2;i>=0;i--){
+                for(int j=i+1;j<n-1;j++){
+                    A[i*n+m]-=A[i*n+j]*A[j*n+m];
+                    //A[i*n+j]=0;
+                }
+            }
+        }
+        
+        // slightly rewritten version of the function findHomography from ofxHomography
+        ofMatrix4x4 getMatrix(const ofPoint* src, const ofPoint* dst){
+            float homography[16];
+            // create the equation system to be solved
+            // src and dst must implement [] operator for point access
+            //
+            // from: Multiple View Geometry in Computer Vision 2ed
+            //       Hartley R. and Zisserman A.
+            //
+            // x' = xH
+            // where H is the homography: a 3 by 3 matrix
+            // that transformed to inhomogeneous coordinates for each point
+            // gives the following equations for each point:
+            //
+            // x' * (h31*x + h32*y + h33) = h11*x + h12*y + h13
+            // y' * (h31*x + h32*y + h33) = h21*x + h22*y + h23
+            //
+            // as the homography is scale independent we can let h33 be 1 (indeed any of the terms)
+            // so for 4 points we have 8 equations for 8 terms to solve: h11 - h32
+            // after ordering the terms it gives the following matrix
+            // that can be solved with gaussian elimination:
+            
+            float P[8][9]={
+                {-src[0].x, -src[0].y, -1,   0,   0,  0, src[0].x*dst[0].x, src[0].y*dst[0].x, -dst[0].x }, // h11
+                {  0,   0,  0, -src[0].x, -src[0].y, -1, src[0].x*dst[0].y, src[0].y*dst[0].y, -dst[0].y }, // h12
+                
+                {-src[1].x, -src[1].y, -1,   0,   0,  0, src[1].x*dst[1].x, src[1].y*dst[1].x, -dst[1].x }, // h13
+                {  0,   0,  0, -src[1].x, -src[1].y, -1, src[1].x*dst[1].y, src[1].y*dst[1].y, -dst[1].y }, // h21
+                
+                {-src[2].x, -src[2].y, -1,   0,   0,  0, src[2].x*dst[2].x, src[2].y*dst[2].x, -dst[2].x }, // h22
+                {  0,   0,  0, -src[2].x, -src[2].y, -1, src[2].x*dst[2].y, src[2].y*dst[2].y, -dst[2].y }, // h23
+                
+                {-src[3].x, -src[3].y, -1,   0,   0,  0, src[3].x*dst[3].x, src[3].y*dst[3].x, -dst[3].x }, // h31
+                {  0,   0,  0, -src[3].x, -src[3].y, -1, src[3].x*dst[3].y, src[3].y*dst[3].y, -dst[3].y }, // h32
+            };
+            
+            gaussian_elimination(&P[0][0],9);
+            
+            // gaussian elimination gives the results of the equation system
+            // in the last column of the original matrix.
+            // opengl needs the transposed 4x4 matrix:
+            float aux_H[]={ P[0][8],P[3][8],0,P[6][8],	// h11  h21 0 h31
+                P[1][8],P[4][8],0,P[7][8],	// h12  h22 0 h32
+                0      ,      0,0,0,		// 0    0   0 0
+                P[2][8],P[5][8],0,1};		// h13  h23 0 h33
+            
+            for(int i=0;i<16;i++) homography[i] = aux_H[i];
+            
+            return ofMatrix4x4(homography);
+        }
+        
+        
+        
+        
+        static ofPoint toScreenCoordinates(ofPoint point, ofMatrix4x4 homography){
+            ofVec4f original;
+            ofVec4f screen;
+            
+            original.x = point.x;
+            original.y = point.y;
+            original.z = point.z;
+            original.w = 1.0;
+            
+            ofMatrix4x4 transposed = ofMatrix4x4::getTransposedOf(homography);
+            
+            screen = transposed * original;
+            
+            screen.x = screen.x / screen.w;
+            screen.y = screen.y / screen.w;
+            screen.z = screen.z / screen.w;
+            
+            return ofPoint(screen.x,screen.y, screen.z);
+        }
+        
+        
     };
+    
 }
