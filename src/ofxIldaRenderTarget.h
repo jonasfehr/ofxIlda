@@ -112,6 +112,47 @@ namespace ofxIlda {
             }
         }
         
+        //--------------------------------------------------------------
+        vector<ofPolyline> update_getPolys() {
+            fbo.readToPixels(pixels);
+            colorImage.setFromPixels(pixels);
+            greyImage.setFromColorImage(colorImage);
+            
+            if(params.cv.blurAmount) greyImage.blurGaussian(params.cv.blurAmount * 2 + 1);
+            if(params.cv.bottomThreshold) {
+                cvThreshold(greyImage.getCvImage(), greyImage.getCvImage(), params.cv.bottomThreshold*2+1, 0, CV_THRESH_TOZERO); greyImage.flagImageChanged();
+            }
+            
+            if(params.cv.thresholdAmount) greyImage.threshold(params.cv.thresholdAmount);
+            if(params.cv.adaptiveThresholdBlock) greyImage.adaptiveThreshold(params.cv.adaptiveThresholdBlock*2+1, params.cv.adaptiveThresholdAmount, true);
+            for(int i=0; i<params.cv.erodeAmount; i++) greyImage.erode();
+            
+            if(params.cv.doCanny) {
+                cvCanny(greyImage.getCvImage(), greyImage.getCvImage(), params.cv.cannyThresh1, params.cv.cannyThresh2, params.cv.cannyWindow*2+1);
+                greyImage.flagImageChanged();
+            }
+            
+            if(params.cv.doInvert) greyImage.invert();
+            
+            contourFinder.findContours(greyImage, 5*5, greyImage.getWidth() * greyImage.getHeight(), 1000, params.cv.doFindHoles, false);
+            
+            ofVec2f normalizer(1.0f/contourFinder.getWidth(), 1.0f/contourFinder.getHeight());
+            
+            vector<ofPolyline> polysOut;
+            
+            for(int i=0; i<contourFinder.blobs.size(); i++) {
+                vector<ofPoint> &pts = contourFinder.blobs[i].pts;
+                ofPolyline poly;
+                for(int j=0; j<pts.size(); j++) {
+                    poly.lineTo(pts[j] * normalizer);  // coordinates are 0...1
+                }
+                poly.close();
+                polysOut.push_back(poly);
+            }
+            
+            return polysOut;
+        }
+        
         
         //--------------------------------------------------------------
         void draw(float x, float y, float w, float h) {

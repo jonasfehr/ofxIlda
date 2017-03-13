@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxEtherdream.h"
-//#include "ofxRayComposer.h"
+//#include "ofxEtherdream.h"
+#include "ofxRayComposer.h"
 #include "ofxSyphon.h"
 #include "ofxSimpleGuiToo.h"
 #include "ofxIldaRenderTarget.h"
@@ -21,8 +21,8 @@ public:
     
     void drawInFbo();
 
-    ofxEtherdream ildaDAC;
-//    ofxRayComposer ildaDAC;
+ //   ofxEtherdream ildaDAC;
+    ofxRayComposer ildaDAC;
     
     ofxSyphonClient syphonIn;
     

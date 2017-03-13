@@ -77,7 +77,7 @@ namespace ofxIlda {
             params.output.endCount = 10;
             params.output.doCapX = false;
             params.output.doCapY = false;
-            params.output.useColorMap = true;//false;
+            params.output.useColorMap = false;
             
             params.output.transform.doMap = false;
             params.output.transform.doFlipX = false;
