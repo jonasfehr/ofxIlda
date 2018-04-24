@@ -113,7 +113,7 @@ namespace ofxIlda {
             mappedPolys = origPolys;
             for(int i=0; i<mappedPolys.size(); i++) {
                 for(int p = 0; p < mappedPolys[i].getVertices().size(); p++){
-                    mappedPolys[i].getVertices()[p] = matrix.preMult(mappedPolys[i].getVertices()[p]);
+                    mappedPolys[i].getVertices()[p] = matrix.preMult((ofVec3f)mappedPolys[i].getVertices()[p]);
                 }
             }
             
