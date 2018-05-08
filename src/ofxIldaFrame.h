@@ -348,7 +348,8 @@ namespace ofxIlda {
             points.clear();
             for(int i=0; i<processedPolys.size(); i++) {
                 ofPolyline &poly = processedPolys[i];
-                ofFloatColor pointColor = processedPolys[i].color; // was &
+                ofFloatColor pointColorOriginal = processedPolys[i].color;
+                ofFloatColor pointColor = pointColorOriginal;
                 
                 if(poly.size() > 0) {
                     
@@ -360,24 +361,26 @@ namespace ofxIlda {
                         points.push_back( Point(startPoint, ofFloatColor(0, 0, 0, 0)));
                     }
                     
-                    // repeat at start
-                    for(int n=0; n<params.output.endCount; n++) {
-                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(startPoint.x*params.output.colorMap.getWidth(), startPoint.y*params.output.colorMap.getHeight()));
-                        points.push_back( Point(startPoint, pointColor) );
-                    }
+                // repeat at start
+                for(int n=0; n<params.output.endCount; n++) {
                     
-                    // add points
-                    for(int j=0; j<poly.size(); j++) {
-                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(poly[j].x*params.output.colorMap.getWidth(), poly[j].y*params.output.colorMap.getHeight()));
-                        points.push_back( Point(transformPoint(poly[j]), pointColor) );
-                    }
+                    if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(startPoint.x*params.output.colorMap.getWidth(), startPoint.y*params.output.colorMap.getHeight()))*pointColorOriginal;
                     
-                    // repeat at end
-                    for(int n=0; n<params.output.endCount; n++) {
-                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(endPoint.x*params.output.colorMap.getWidth(), endPoint.y*params.output.colorMap.getHeight()));
-                        points.push_back( Point(endPoint, pointColor) );
-                    }
-                    
+                    points.push_back( Point(startPoint, pointColor));///(float)(params.output.endCount/2)) );
+                }
+                
+                // add points
+                for(int j=0; j<poly.size(); j++) {
+                    if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(poly[j].x*params.output.colorMap.getWidth(), poly[j].y*params.output.colorMap.getHeight()))*pointColorOriginal;
+                    points.push_back( Point(transformPoint(poly[j]), pointColor) );
+                }
+                
+                // repeat at end
+                for(int n=0; n<params.output.endCount; n++) {
+                    if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(endPoint.x*params.output.colorMap.getWidth(), endPoint.y*params.output.colorMap.getHeight()))*pointColorOriginal;
+                    points.push_back( Point(endPoint, pointColor));///(float)(params.output.endCount/2)) );
+                }
+                
                     // blanking at end
                     for(int n=0; n<params.output.blankCount; n++) {
                         points.push_back( Point(endPoint, ofFloatColor(0, 0, 0, 0) ));

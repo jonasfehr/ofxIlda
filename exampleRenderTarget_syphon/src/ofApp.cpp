@@ -67,7 +67,7 @@ void ofApp::setup(){
     doFboClear = true;
     
     syphonIn.setup();
-    syphonIn.set("Main View","Modul8");
+    syphonIn.find("Screen 1","Arena");
     
     ildaFrame.params.output.transform.doMap = true;
     
@@ -155,6 +155,8 @@ void ofApp::draw() {
     ofSetColor(255, 128);
     ofDrawCircle(ofGetMouseX(), ofGetMouseY(), r);
     
+    ofSetWindowTitle("fps " + ofToString(ofGetFrameRate(), 0) + " | syphonInput: " + syphonIn.getName());
+    
     gui.draw();
 }
 
@@ -165,7 +167,8 @@ void ofApp::keyPressed(int key){
         case 'f': ofToggleFullscreen(); break;
         case 'c': doFboClear ^= true; break;
         case 'x': doDrawErase ^= true; break;
-            
+        case 'i': syphonIn.next();
+
         case '=':
         case '+': brushThickness++; break;
             

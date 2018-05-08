@@ -3,7 +3,7 @@
 #include "ofMain.h"
 //#include "ofxEtherdream.h"
 #include "ofxRayComposer.h"
-#include "ofxSyphon.h"
+#include "ofxSyphonUtils.h"
 #include "ofxSimpleGuiToo.h"
 #include "ofxIldaRenderTarget.h"
 
@@ -24,7 +24,7 @@ public:
  //   ofxEtherdream ildaDAC;
     ofxRayComposer ildaDAC;
     
-    ofxSyphonClient syphonIn;
+    ofxSyphonClientDir syphonIn;
     
     // VARS
     ofxIlda::RenderTarget ildaFbo;
