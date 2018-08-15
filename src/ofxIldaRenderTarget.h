@@ -20,27 +20,29 @@
 namespace ofxIlda {
     class RenderTarget {
     public:
+        ofParameterGroup parameters;
+
         struct {
             // cv
             struct {
-                int blurAmount;
-                int bottomThreshold;
-                int thresholdAmount;
-                int adaptiveThresholdAmount;
-                int adaptiveThresholdBlock;
-                int erodeAmount;
-                bool doCanny;
-                float cannyThresh1;
-                float cannyThresh2;
-                int cannyWindow;
-                bool doInvert;
-                bool doFindHoles;
+                ofParameter<int> blurAmount;
+                ofParameter<int> bottomThreshold;
+                ofParameter<int> thresholdAmount;
+                ofParameter<int> adaptiveThresholdAmount;
+                ofParameter<int> adaptiveThresholdBlock;
+                ofParameter<int> erodeAmount;
+                ofParameter<bool> doCanny;
+                ofParameter<float> cannyThresh1;
+                ofParameter<float> cannyThresh2;
+                ofParameter<int> cannyWindow;
+                ofParameter<bool> doInvert;
+                ofParameter<bool> doFindHoles;
             } cv;
             
             struct {
-                bool fbo;
-                int fboAlpha;
-                bool linesRaw;
+                ofParameter<bool> fbo;
+                ofParameter<int> fboAlpha;
+                ofParameter<bool> linesRaw;
             } draw;
         } params;
         
@@ -56,6 +58,26 @@ namespace ofxIlda {
             
             colorImage.allocate(fbo.getWidth(), fbo.getHeight());
             greyImage.allocate(fbo.getWidth(), fbo.getHeight());
+            
+            parameters.setName("IldaRenderTarget");
+            parameters.add(params.cv.blurAmount.set("blurAmount",0, 0, 20));
+            parameters.add(params.cv.bottomThreshold.set("bottomThreshold", 0, 0, 20));
+            parameters.add(params.cv.thresholdAmount.set("thresholdAmount", 120, 0, 255));
+            parameters.add(params.cv.adaptiveThresholdAmount.set("adaptiveThresholdAmount",0, 0, 50));
+            parameters.add(params.cv.adaptiveThresholdBlock.set("adaptiveThresholdBlock",0, 0, 10));
+            parameters.add(params.cv.erodeAmount.set("erodeAmount",0, 0, 20));
+            parameters.add(params.cv.doCanny.set("doCanny", true));
+            parameters.add(params.cv.cannyThresh1.set("cannyThresh1",0, 0, 10));
+            parameters.add(params.cv.cannyThresh2.set("cannyThresh2",0, 0, 10));
+            parameters.add(params.cv.cannyWindow.set("cannyWindow",1, 1, 3));
+            parameters.add(params.cv.doInvert.set("doInvert", false));
+            parameters.add(params.cv.doFindHoles.set("doFindHoles", true));
+            
+            parameters.add(params.draw.fbo.set("fbo", true));
+            parameters.add(params.draw.fboAlpha.set("fboAlpha",0, 0, 255));
+            parameters.add(params.draw.linesRaw.set("linesRaw", true));
+
+
         }
         
         
@@ -101,56 +123,15 @@ namespace ofxIlda {
             
             contourFinder.findContours(greyImage, 5*5, greyImage.getWidth() * greyImage.getHeight(), 1000, params.cv.doFindHoles, false);
             
-            ofVec2f normalizer(1.0f/contourFinder.getWidth(), 1.0f/contourFinder.getHeight());
+            glm::vec2 normalizer(1.0f/contourFinder.getWidth(), 1.0f/contourFinder.getHeight());
             for(int i=0; i<contourFinder.blobs.size(); i++) {
-                vector<ofPoint> &pts = contourFinder.blobs[i].pts;
+                vector<glm::vec3> &pts = contourFinder.blobs[i].pts;
                 ofPolyline &poly = ildaFrame.addPoly();
                 for(int j=0; j<pts.size(); j++) {
                     poly.lineTo(pts[j] * normalizer);  // coordinates are 0...1
                 }
                 poly.close();
             }
-        }
-        
-        //--------------------------------------------------------------
-        vector<ofPolyline> update_getPolys() {
-            fbo.readToPixels(pixels);
-            colorImage.setFromPixels(pixels);
-            greyImage.setFromColorImage(colorImage);
-            
-            if(params.cv.blurAmount) greyImage.blurGaussian(params.cv.blurAmount * 2 + 1);
-            if(params.cv.bottomThreshold) {
-                cvThreshold(greyImage.getCvImage(), greyImage.getCvImage(), params.cv.bottomThreshold*2+1, 0, CV_THRESH_TOZERO); greyImage.flagImageChanged();
-            }
-            
-            if(params.cv.thresholdAmount) greyImage.threshold(params.cv.thresholdAmount);
-            if(params.cv.adaptiveThresholdBlock) greyImage.adaptiveThreshold(params.cv.adaptiveThresholdBlock*2+1, params.cv.adaptiveThresholdAmount, true);
-            for(int i=0; i<params.cv.erodeAmount; i++) greyImage.erode();
-            
-            if(params.cv.doCanny) {
-                cvCanny(greyImage.getCvImage(), greyImage.getCvImage(), params.cv.cannyThresh1, params.cv.cannyThresh2, params.cv.cannyWindow*2+1);
-                greyImage.flagImageChanged();
-            }
-            
-            if(params.cv.doInvert) greyImage.invert();
-            
-            contourFinder.findContours(greyImage, 5*5, greyImage.getWidth() * greyImage.getHeight(), 1000, params.cv.doFindHoles, false);
-            
-            ofVec2f normalizer(1.0f/contourFinder.getWidth(), 1.0f/contourFinder.getHeight());
-            
-            vector<ofPolyline> polysOut;
-            
-            for(int i=0; i<contourFinder.blobs.size(); i++) {
-                vector<ofPoint> &pts = contourFinder.blobs[i].pts;
-                ofPolyline poly;
-                for(int j=0; j<pts.size(); j++) {
-                    poly.lineTo(pts[j] * normalizer);  // coordinates are 0...1
-                }
-                poly.close();
-                polysOut.push_back(poly);
-            }
-            
-            return polysOut;
         }
         
         
@@ -174,7 +155,7 @@ namespace ofxIlda {
                 ofSetColor(255, 0, 0);
                 ofNoFill();
                 for(int i=0; i<contourFinder.blobs.size(); i++ ) {
-                    vector<ofPoint> &pts = contourFinder.blobs[i].pts;
+                    vector<glm::vec3> &pts = contourFinder.blobs[i].pts;
                     ofBeginShape();
                     for(int j=0; j<pts.size(); j++) {
                         ofVertex(pts[j].x, pts[j].y);

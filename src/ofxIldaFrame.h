@@ -4,6 +4,7 @@
 //
 //  Created by Memo Akten on 09/05/2013.
 //  Updated by Mitsuru Takeuchi on 02/06/2013.
+//  Added colorMaps by Jonas Fehr 02/06/2013
 //
 
 
@@ -16,40 +17,49 @@
 #include "ofxIldaPoly.h"
 #include "ofxIldaPoint.h"
 #include "ofxIldaPolyProcessor.h"
-#include "ofxIldaMapper.h"
-
 
 namespace ofxIlda {
 	
     class Frame {
-    public:
+public:
+		ofParameterGroup parameters;
         struct {
             struct {
-                bool lines; // draw lines
-                bool points;    // draw points
-                bool pointNumbers;  // draw point numbers (not implemented yet)
+                ofParameter<bool> lines; // draw lines
+                ofParameter<bool> points;    // draw points
+                ofParameter<bool> pointNumbers;  // draw point numbers (not implemented yet)
+                ofParameter<bool> finalPoints;  // draw the Final Points
             } draw;
             
             struct {
-                ofFloatColor color; // color
+                ofParameter<ofFloatColor> masterColor; // color
                 ofPixels colorMap;
-                int blankCount;     // how many blank points to send at path ends
-                int endCount;       // how many end repeats to send
-                bool doCapX;        // cap out of range on x (otherwise wraps around)
-                bool doCapY;        // cap out of range on y (otherwise wraps around)
-                bool useColorMap;
+                ofParameter<int> startBlanks;     // how many blank points to send at path ends
+                ofParameter<int> startCount;       // how many end repeats to send in start
+                ofParameter<int> endCount;       // how many end repeats to send
+                ofParameter<int> endBlanks;     // how many blank points to send at path ends
+                ofParameter<bool> doCapX;        // cap out of range on x (otherwise wraps around)
+                ofParameter<bool> doCapY;        // cap out of range on y (otherwise wraps around)
+                ofParameter<bool> useColorMap;
+                ofParameter<bool> doDisplace;
+                ofParameter<float> displaceAmount;
+                ofParameter<bool> doFade;
+                ofParameter<float> fadeLength;
+
+                ofPixels displacementMap;
+
                 struct {
-                    bool doMap;
-                    bool doFlipX;
-                    bool doFlipY;
-                    ofVec2f offset;
-                    ofVec2f scale;
+//                    ofParameter<bool> doMap;
+                    ofParameter<bool> doFlipX;
+                    ofParameter<bool> doFlipY;
+                    ofParameter<glm::vec2> offset;
+                    ofParameter<glm::vec2> scale;
                 } transform;
             } output;
         } params;
         
-        Mapper mapper;
-        
+//        Mapper mapper;
+
         PolyProcessor polyProcessor; // params and functionality for processing the polys
         
         struct {
@@ -65,43 +75,84 @@ namespace ofxIlda {
         
         //--------------------------------------------------------------
         void setDefaultParams() {
-            memset(&params, 0, sizeof(params));  // safety catch all default to zero
-            memset(&stats, 0, sizeof(stats));  // safety catch all default to zero
-            
+//            memset(&params, 0, sizeof(params));  // safety catch all default to zero
+//            memset(&stats, 0, sizeof(stats));  // safety catch all default to zero
+			
             params.draw.lines = true;
             params.draw.points = true;
             params.draw.pointNumbers = false;
-            
-            params.output.color.set(1, 1, 1, 1);
-            params.output.blankCount = 10;
+            params.draw.finalPoints = false;
+
+            params.output.masterColor.set(ofFloatColor(1, 1, 1, 1)); // limits the color of the polys to it´s value
+            params.output.startBlanks = 10;
+            params.output.startCount = 10;
             params.output.endCount = 10;
+            params.output.endBlanks = 10;
             params.output.doCapX = false;
             params.output.doCapY = false;
             params.output.useColorMap = false;
+            params.output.doDisplace = false;
+            params.output.displaceAmount = 0.;
+            params.output.doFade = false;
+            params.output.fadeLength = 0.;
             
-            params.output.transform.doMap = false;
+//            params.output.transform.doMap = false;
             params.output.transform.doFlipX = false;
             params.output.transform.doFlipY = false;
-            params.output.transform.offset.set(0, 0);
-            params.output.transform.scale.set(1, 1);
+            params.output.transform.offset.set(glm::vec2(0, 0));
+            params.output.transform.scale.set(glm::vec2(1, 1));
         }
+		void setup(){
+			parameters.setName("IldaFrame Params");
+            polyProcessor.setup();
+            parameters.add(polyProcessor.parameters);
+            parameters.add(params.draw.lines.set("Draw Lines", true));
+            parameters.add(params.draw.points.set("Draw Points",true));
+            parameters.add(params.draw.pointNumbers.set("Draw Point nums", false));
+            parameters.add(params.draw.finalPoints.set("Draw finalPoints", false));
+
+            parameters.add(params.output.masterColor.set("masterColor", {1., 1., 1., 1.}, {0.,0.,0.,0.}, {1., 1., 1., 1.}));
+            parameters.add(params.output.startBlanks.set("start Blanks",10, 0, 100));
+            parameters.add(params.output.startCount.set("start Count", 10, 0, 100));
+            parameters.add(params.output.endCount.set("end Count", 10, 0, 100));
+            parameters.add(params.output.endBlanks.set("end Blanks",10, 0, 100));
+            parameters.add(params.output.doCapX.set("Do Cap X", false));
+            parameters.add(params.output.doCapY.set("Do Cap Y", false));
+            parameters.add(params.output.useColorMap.set("useColorMap", false));
+            parameters.add(params.output.doDisplace.set("doDisplace", false));
+            parameters.add(params.output.displaceAmount.set("displaceAmount", 0., 0., 1.));
+            parameters.add(params.output.doFade.set("doFade", false));
+            parameters.add(params.output.fadeLength.set("fadeLength", 0., 0., 1.));
+
+            parameters.add(params.output.transform.doFlipX.set("Do Flip X", false));
+            parameters.add(params.output.transform.doFlipY.set("Do Flip Y", false));
+            parameters.add(params.output.transform.offset.set("Offset", {0, 0}, {-1,-1},{1,1}));
+            parameters.add(params.output.transform.scale.set("Scale", {0, 0}, {0,0},{3,3}));
+            
+            params.output.colorMap.allocate(512,512,OF_IMAGE_COLOR_ALPHA);
+            params.output.displacementMap.allocate(512,512,OF_IMAGE_COLOR_ALPHA);
+
+		}
         
         
         //--------------------------------------------------------------
         string getString() {
             stringstream s;
+            s << polyProcessor.getString();
             
             s << "params:" << endl;
             s << "draw.lines : " << params.draw.lines << endl;
             s << "draw.point : " << params.draw.points << endl;
             s << "draw.pointNumbers : " << params.draw.pointNumbers << endl;
             
-            s << "output.color : " << params.output.color << endl;
-            s << "output.blankCount : " << params.output.blankCount << endl;
+            s << "output.masterColor : " << params.output.masterColor << endl;
+            s << "output.startBlanks : " << params.output.startBlanks << endl;
+            s << "output.startCount : " << params.output.startCount << endl;
             s << "output.endCount : " << params.output.endCount << endl;
+            s << "output.endBlanks : " << params.output.endBlanks << endl;
             s << "output.doCapX : " << params.output.doCapX << endl;
             s << "output.doCapY : " << params.output.doCapY << endl;
-            s << "output.transform.doMap : " << params.output.transform.doMap << endl;
+//            s << "output.transform.doMap : " << params.output.transform.doMap << endl;
             s << "output.transform.doFlipX : " << params.output.transform.doFlipX << endl;
             s << "output.transform.doFlipY : " << params.output.transform.doFlipY << endl;
             s << "output.transform.offset : " << params.output.transform.offset << endl;
@@ -112,30 +163,29 @@ namespace ofxIlda {
             s << "stats:" << endl;
             s << "stats.pointCountOrig : " << stats.pointCountOrig << endl;
             s << "stats.pointCountProcessed : " << stats.pointCountProcessed << endl;
-            s << endl;
             
             s << polyProcessor.getString();
             s << endl;
-            s << mapper.getString();
-
+//            s << mapper.getString();
             
             return s.str();
         }
         
         //--------------------------------------------------------------
         void update() {
-            if(params.output.transform.doMap){
-                vector<Poly> mappedPolys;
-                mapper.update(origPolys, mappedPolys);
-                polyProcessor.update(mappedPolys, processedPolys);
-            } else {
-            polyProcessor.update(origPolys, processedPolys);
-            }
-			
+//            if(params.output.transform.doMap){
+//                vector<Poly> mappedPolys;
+//                mapper.update(origPolys, mappedPolys);
+//                polyProcessor.update(mappedPolys, processedPolys);
+//
+//            }else{
+                polyProcessor.update(origPolys, processedPolys);
+//            }
+        
             // get stats
             stats.pointCountOrig = 0;
             stats.pointCountProcessed = 0;
-            for(int i=0; i<processedPolys.size(); i++) {
+            for(size_t i=0; i<processedPolys.size(); i++) {
                 stats.pointCountOrig += origPolys[i].size();
                 stats.pointCountProcessed += processedPolys[i].size();
             }
@@ -155,50 +205,68 @@ namespace ofxIlda {
             ofScale(w, h);
             
             if(params.draw.lines) {
-                ofSetLineWidth(2);
-                for(int i=0; i<processedPolys.size(); i++) {
-                    ofPolyline &poly = processedPolys[i];
-					ofFloatColor &pcolor = processedPolys[i].color;
-					ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
-                    poly.draw();
-                    //            for(int i=0; i<data.size(); i++) {
-                    //                ofPoint p0 = data[i];
-                    //                if(i < data.size()-1) {
-                    //                    ofPoint p1 = data[i+1];
-                    ////                    ofSetColor(p1.r * 255, p1.g * 255, p1.b * 255, p1.a * 255);
-                    //                    ofDrawLine(p0.x, p0.y, p1.x, p1.y);
-                    //                }
-                    //            }
-                }
+                drawLines();
             }
             if(params.draw.points) {
-                glPointSize(5);
-                for(int i=0; i<processedPolys.size(); i++) {
-                    ofPolyline &poly = processedPolys[i];
-                    ofFloatColor &pcolor = processedPolys[i].color;
-					ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
-                    
-					glBegin(GL_POINTS);
-//                    for(int i=0; i<poly.size(); i++) {
-//                        ofPoint &p = poly[i];
-//                        glVertex2f(p.x, p.y);
-//                    }
-                    for(int i=0; i<points.size(); i++) {
-                        Point &p = points[i];
-                        ofSetColor(p.r / 256, p.g / 256, p.b / 255, p.a / 255);
-                        glVertex2f(ofMap(p.x, -32767, 32767, 0, 1), ofMap(p.y, -32767, 32767, 0, 1));
-                    }
-
-                    glEnd();
-                }
+                drawPoints();
             }
-            
-            
+            if(params.draw.finalPoints) {
+                drawFinalPoints();
+            }
             ofPopMatrix();
             ofPopStyle();
             
-            mapper.draw(x,y,w,h);
-
+//            mapper.draw(x,y,w,h);
+        }
+        
+        void drawLines(){
+            ofSetLineWidth(2);
+            for(size_t i=0; i<processedPolys.size(); i++) {
+                ofPolyline &poly = processedPolys[i];
+                ofFloatColor &pcolor = processedPolys[i].color;
+                ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
+                poly.draw();
+            }
+        }
+        
+        void drawPoints(){
+            ofMesh mesh;
+            mesh.setMode(OF_PRIMITIVE_POINTS);
+            glEnable(GL_POINT_SMOOTH);
+            glPointSize(5);
+            
+            
+            for(size_t i=0; i<processedPolys.size(); i++) {
+                ofPolyline &poly = processedPolys[i];
+                ofFloatColor &pcolor = processedPolys[i].color;
+                ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
+                
+                for(size_t i=0; i<poly.size(); i++) {
+                    auto &p = poly[i];
+                    mesh.addVertex(glm::vec3(p.x, p.y,0.));
+                }
+                mesh.drawVertices();
+                mesh.clearVertices();
+                
+            }
+        }
+        
+        void drawFinalPoints(){
+            ofMesh mesh;
+            mesh.setMode(OF_PRIMITIVE_POINTS);
+            glEnable(GL_POINT_SMOOTH);
+            glPointSize(5);
+            
+            
+            for(size_t i=0; i<points.size(); i++) {
+                Point &point = points[i];
+                mesh.addColor(ofFloatColor(point.r/(float)kIldaMaxIntensity, point.g/(float)kIldaMaxIntensity, point.b/(float)kIldaMaxIntensity, point.a/(float)kIldaMaxIntensity));
+                mesh.addVertex(point.getPosition());
+                
+            }
+            ofSetColor(255);
+            mesh.drawVertices();
+            mesh.clearVertices();
         }
         
         //--------------------------------------------------------------
@@ -220,12 +288,12 @@ namespace ofxIlda {
         
         //--------------------------------------------------------------
         Poly& addPoly() {
-            return addPoly(Poly(params.output.color));
+            return addPoly(Poly());
         }
         
         //--------------------------------------------------------------
         Poly& addPoly(const ofPolyline& polyline) {
-            return addPoly(polyline, params.output.color);
+            return addPoly(polyline);
         }
         
         //--------------------------------------------------------------
@@ -234,29 +302,29 @@ namespace ofxIlda {
         }
 
         //--------------------------------------------------------------
-        Poly& addPoly(const vector<ofPoint> points) {
+        Poly& addPoly(const vector<glm::vec3> points) {
             return addPoly(Poly(points));
         }
         
         //--------------------------------------------------------------
-        Poly& addPoly(const vector<ofPoint> points, ofFloatColor color) {
+        Poly& addPoly(const vector<glm::vec3> points, ofFloatColor color) {
             return addPoly(Poly(points, color));
         }
         
         //--------------------------------------------------------------
         void addPolys(const vector<ofPolyline> &polylines) {
-            for(int i=0; i<polylines.size(); i++) addPoly(polylines[i]);
+            for(size_t i=0; i<polylines.size(); i++) addPoly(polylines[i]);
         }
         
         //--------------------------------------------------------------
         void addPolys(const vector<ofPolyline> &polylines, ofFloatColor color) {
-            for(int i=0; i<polylines.size(); i++) addPoly(polylines[i], color);
+            for(size_t i=0; i<polylines.size(); i++) addPoly(polylines[i], color);
         }
 
         
         //--------------------------------------------------------------
         void addPolys(const vector<Poly> &polys) {
-            for(int i=0; i<polys.size(); i++) addPoly(polys[i]);
+            for(size_t i=0; i<polys.size(); i++) addPoly(polys[i]);
         }
         
         //--------------------------------------------------------------
@@ -309,23 +377,20 @@ namespace ofxIlda {
         }
 
         //--------------------------------------------------------------
-        ofPoint transformPoint(ofPoint p) const {
+        glm::vec3 transformPoint(glm::vec3 p) const {
             // flip
             if(params.output.transform.doFlipX) p.x = 1 - p.x;
             if(params.output.transform.doFlipY) p.y = 1 - p.y;
             
             // scale
-            if(params.output.transform.scale.lengthSquared() > 0) {
-                p -= ofPoint(0.5, 0.5);
-                p *= params.output.transform.scale;
-                p += ofPoint(0.5, 0.5);
+            if(glm::length2(params.output.transform.scale.get()) > 0) {
+                p -= glm::vec3(0.5, 0.5, 0);
+                p *= glm::vec3(params.output.transform.scale.get(),0);
+                p += glm::vec3(0.5, 0.5, 0);
             }
             
             // offset
-            p += params.output.transform.offset;
-            
-
-
+            p += glm::vec3(params.output.transform.offset.get(), 0);
             
             // cap or wrap
             if(p.x < 0) {
@@ -346,45 +411,94 @@ namespace ofxIlda {
         //--------------------------------------------------------------
         void updateFinalPoints() {
             points.clear();
-            for(int i=0; i<processedPolys.size(); i++) {
+            for(size_t i=0; i<processedPolys.size(); i++) {
                 ofPolyline &poly = processedPolys[i];
-                ofFloatColor pointColor = processedPolys[i].color; // was &
+                ofFloatColor pointColorOriginal = processedPolys[i].color;
+                ofFloatColor &pcolor = processedPolys[i].color;
                 
                 if(poly.size() > 0) {
                     
-                    ofPoint startPoint = transformPoint(poly.getVertices().front());
-                    ofPoint endPoint = transformPoint(poly.getVertices().back());
+                    glm::vec2 displace = glm::vec2(0.);
+
+                    
+                    glm::vec3 startPoint = transformPoint(poly.getVertices().front());
+                    if(params.output.doDisplace){
+                        ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(startPoint.x*params.output.displacementMap.getWidth(), startPoint.y*params.output.displacementMap.getHeight()));
+                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmount;
+                    }
+                    startPoint = startPoint - displace;
+                    
+                    glm::vec3 endPoint = transformPoint(poly.getVertices().back());
+                    if(params.output.doDisplace){
+                        ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(endPoint.x*params.output.displacementMap.getWidth(), endPoint.y*params.output.displacementMap.getHeight()));
+                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmount;
+                    }
+                    endPoint = endPoint - displace;
+                    
+                    //Fade precalc
+                    int fadeToIndex = int(float(polyProcessor.params.targetPointCount)*(params.output.fadeLength));
+                    float dimPerStep = 1.0f/float(fadeToIndex);
                     
                     // blanking at start
-                    for(int n=0; n<params.output.blankCount; n++) {
+                    for(int n=0; n<params.output.startBlanks; n++) {
                         points.push_back( Point(startPoint, ofFloatColor(0, 0, 0, 0)));
                     }
                     
-                    // repeat at start
-                    for(int n=0; n<params.output.endCount; n++) {
-                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(startPoint.x*params.output.colorMap.getWidth(), startPoint.y*params.output.colorMap.getHeight()));
-                        points.push_back( Point(startPoint, pointColor) );
+                    if(!params.output.doFade){
+                        // repeat at start
+                        for(int n=0; n<params.output.startCount; n++) {
+                            
+                            if(params.output.useColorMap) pcolor = ofFloatColor(params.output.colorMap.getColor(startPoint.x*params.output.colorMap.getWidth(), startPoint.y*params.output.colorMap.getHeight()))*pointColorOriginal;
+                            
+                            points.push_back( Point(startPoint, limitColor(pcolor, params.output.masterColor)) );
+                        }
                     }
                     
+                    
                     // add points
+                    float fadeDimAmt = 0.;
                     for(int j=0; j<poly.size(); j++) {
-                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(poly[j].x*params.output.colorMap.getWidth(), poly[j].y*params.output.colorMap.getHeight()));
-                        points.push_back( Point(transformPoint(poly[j]), pointColor) );
+                        ofFloatColor color = pcolor;
+                        if(params.output.useColorMap) color = ofFloatColor(params.output.colorMap.getColor(poly[j].x*params.output.colorMap.getWidth(), poly[j].y*params.output.colorMap.getHeight()))*pointColorOriginal;
+                        
+                        if(params.output.doDisplace){
+                            ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(poly[j].x*params.output.displacementMap.getWidth(), poly[j].y*params.output.displacementMap.getHeight()));
+                            displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmount;
+                        }
+                        if(params.output.doFade && j<fadeToIndex){
+                            fadeDimAmt += dimPerStep;
+                            color = color*fadeDimAmt;
+                        }
+                        points.push_back( Point(transformPoint(poly[j])-displace, limitColor(color, params.output.masterColor)) );
                     }
                     
                     // repeat at end
                     for(int n=0; n<params.output.endCount; n++) {
-                        if(params.output.useColorMap) pointColor = ofFloatColor(params.output.colorMap.getColor(endPoint.x*params.output.colorMap.getWidth(), endPoint.y*params.output.colorMap.getHeight()));
-                        points.push_back( Point(endPoint, pointColor) );
+                        if(params.output.useColorMap) pcolor = ofFloatColor(params.output.colorMap.getColor(endPoint.x*params.output.colorMap.getWidth(), endPoint.y*params.output.colorMap.getHeight()))*pointColorOriginal;
+                        points.push_back( Point(endPoint, limitColor(pcolor, params.output.masterColor)) );
                     }
                     
                     // blanking at end
-                    for(int n=0; n<params.output.blankCount; n++) {
+                    for(int n=0; n<params.output.endBlanks; n++) {
                         points.push_back( Point(endPoint, ofFloatColor(0, 0, 0, 0) ));
                     }
                     
                 }
             }
+            //            } else {
+            if(processedPolys.size()==0){ // for safety
+                ofxIlda::Point point;
+                point.set(glm::vec3(0.5,0.5,0.0), ofFloatColor(0));
+                points.push_back(point);
+            }
+        }
+        
+        ofFloatColor limitColor(ofFloatColor a, ofFloatColor b){
+            ofFloatColor color;
+            color.r = a.r * b.r * b.a;
+            color.g = a.g * b.g * b.a;
+            color.b = a.b * b.b * b.a;
+            return color;
         }
         
     protected:

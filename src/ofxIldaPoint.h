@@ -19,8 +19,8 @@ namespace ofxIlda {
     public:
         Point() : x(0), y(0), r(0), g(0), b(0), a(0) {}
         Point(int16_t x, int16_t y, int16_t r=0, int16_t g=0, int16_t b=0, int16_t a=0): x(x), y(y), r(r), g(g), b(b), a(a) {}
-        Point(ofPoint p, ofFloatColor c, ofPoint pmin = ofPoint::zero(), ofPoint pmax = ofPoint::one()) { set(p, c, pmin, pmax); }
-        Point(ofPoint p, ofPoint pmin = ofPoint::zero(), ofPoint pmax = ofPoint::one()) { setPosition(p, pmin, pmax); }
+        Point(glm::vec3 p, ofFloatColor c, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) { set(p, c, pmin, pmax); }
+        Point(glm::vec3 p, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) { setPosition(p, pmin, pmax); }
         
         int16_t x;
         int16_t y;
@@ -50,7 +50,7 @@ namespace ofxIlda {
         
         //--------------------------------------------------------------
         // set color and position mapped from custom range (defaults to normalized)
-        void set(ofPoint p, ofFloatColor c, ofPoint pmin = ofPoint::zero(), ofPoint pmax = ofPoint::one()) {
+        void set(glm::vec3 p, ofFloatColor c, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) {
             set(
                 ofMap(p.x, pmin.x, pmax.x, kIldaMinPoint, kIldaMaxPoint),
                 ofMap(p.y, pmin.y, pmax.y, kIldaMinPoint, kIldaMaxPoint),
@@ -63,7 +63,7 @@ namespace ofxIlda {
         
         //--------------------------------------------------------------
         // set position mapped from custom range (defaults to normalized)
-        void setPosition(ofPoint p, ofPoint pmin = ofPoint::zero(), ofPoint pmax = ofPoint::one()) {
+        void setPosition(glm::vec3 p, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) {
             set(
                 ofMap(p.x, pmin.x, pmax.x, kIldaMinPoint, kIldaMaxPoint),
                 ofMap(p.y, pmin.y, pmax.y, kIldaMinPoint, kIldaMaxPoint)
@@ -73,10 +73,10 @@ namespace ofxIlda {
         
         //--------------------------------------------------------------
         // gets position of point mapped to desired range (defaults to normalized)
-        ofPoint getPosition(ofPoint pmin = ofPoint::zero(), ofPoint pmax = ofPoint::one()) {
-            return ofPoint(
+        glm::vec3 getPosition(glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) {
+            return glm::vec3(
                            ofMap(x, kIldaMinPoint, kIldaMaxPoint, pmin.x, pmax.x),
-                           ofMap(y, kIldaMinPoint, kIldaMaxPoint, pmin.y, pmax.y)
+                           ofMap(y, kIldaMinPoint, kIldaMaxPoint, pmin.y, pmax.y),0
                            );
         }
         

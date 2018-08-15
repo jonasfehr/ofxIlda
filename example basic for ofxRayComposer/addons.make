@@ -1,0 +1,4 @@
+ofxIlda
+ofxOpenCv
+ofxRayComposer
+ofxXmlSettings
