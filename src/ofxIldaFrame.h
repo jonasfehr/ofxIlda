@@ -42,7 +42,8 @@ public:
                 ofParameter<bool> doCapY;        // cap out of range on y (otherwise wraps around)
                 ofParameter<bool> useColorMap;
                 ofParameter<bool> doDisplace;
-                ofParameter<float> displaceAmount;
+                ofParameter<float> displaceAmountHorizontal;
+                ofParameter<float> displaceAmountVertical;
                 ofParameter<bool> doFade;
                 ofParameter<float> fadeLength;
 
@@ -92,7 +93,8 @@ public:
             params.output.doCapY = false;
             params.output.useColorMap = false;
             params.output.doDisplace = false;
-            params.output.displaceAmount = 0.;
+            params.output.displaceAmountHorizontal = 0.;
+            params.output.displaceAmountVertical = 0.;
             params.output.doFade = false;
             params.output.fadeLength = 0.;
             
@@ -120,7 +122,8 @@ public:
             parameters.add(params.output.doCapY.set("Do Cap Y", false));
             parameters.add(params.output.useColorMap.set("useColorMap", false));
             parameters.add(params.output.doDisplace.set("doDisplace", false));
-            parameters.add(params.output.displaceAmount.set("displaceAmount", 0., 0., 1.));
+            parameters.add(params.output.displaceAmountHorizontal.set("displaceAmountHorizontal", 0., -1., 1.));
+            parameters.add(params.output.displaceAmountVertical.set("displaceAmountVertical", 0., -1., 1.));
             parameters.add(params.output.doFade.set("doFade", false));
             parameters.add(params.output.fadeLength.set("fadeLength", 0., 0., 1.));
 
@@ -424,14 +427,16 @@ public:
                     glm::vec3 startPoint = transformPoint(poly.getVertices().front());
                     if(params.output.doDisplace){
                         ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(startPoint.x*params.output.displacementMap.getWidth(), startPoint.y*params.output.displacementMap.getHeight()));
-                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmount;
+                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmountHorizontal;
+                        displace.x = displaceColor.getBrightness()*-(float)params.output.displaceAmountVertical;
                     }
                     startPoint = startPoint - displace;
                     
                     glm::vec3 endPoint = transformPoint(poly.getVertices().back());
                     if(params.output.doDisplace){
                         ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(endPoint.x*params.output.displacementMap.getWidth(), endPoint.y*params.output.displacementMap.getHeight()));
-                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmount;
+                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmountHorizontal;
+                        displace.x = displaceColor.getBrightness()*-(float)params.output.displaceAmountVertical;
                     }
                     endPoint = endPoint - displace;
                     
@@ -463,7 +468,8 @@ public:
                         
                         if(params.output.doDisplace){
                             ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(poly[j].x*params.output.displacementMap.getWidth(), poly[j].y*params.output.displacementMap.getHeight()));
-                            displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmount;
+                            displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmountHorizontal;
+                            displace.x = displaceColor.getBrightness()*-(float)params.output.displaceAmountVertical;
                         }
                         if(params.output.doFade && j<fadeToIndex){
                             fadeDimAmt += dimPerStep;
