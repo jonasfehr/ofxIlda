@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "ofxEtherdream.h"
 
-class testApp : public ofBaseApp{
+class ofApp : public ofBaseApp{
     
 public:
     void setup();
@@ -20,3 +20,4 @@ public:
 
     ofxEtherdream etherdream;   // interface to the etherdream device
 };
+

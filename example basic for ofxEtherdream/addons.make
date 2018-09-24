@@ -1,2 +1,2 @@
-ofxEtherDream
+ofxEtherdream
 ofxIlda
