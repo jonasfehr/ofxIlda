@@ -27,7 +27,7 @@ public:
             struct {
                 ofParameter<bool> lines; // draw lines
                 ofParameter<bool> points;    // draw points
-                ofParameter<bool> pointNumbers;  // draw point numbers (not implemented yet)
+//                ofParameter<bool> pointNumbers;  // draw point numbers (not implemented yet)
                 ofParameter<bool> finalPoints;  // draw the Final Points
             } draw;
             
@@ -79,10 +79,10 @@ public:
 //            memset(&params, 0, sizeof(params));  // safety catch all default to zero
 //            memset(&stats, 0, sizeof(stats));  // safety catch all default to zero
 			
-            params.draw.lines = true;
-            params.draw.points = true;
-            params.draw.pointNumbers = false;
-            params.draw.finalPoints = false;
+            params.draw.lines = false;
+            params.draw.points = false;
+//            params.draw.pointNumbers = false;
+            params.draw.finalPoints = true;
 
             params.output.masterColor.set(ofFloatColor(1, 1, 1, 1)); // limits the color of the polys to it´s value
             params.output.startBlanks = 10;
@@ -108,10 +108,10 @@ public:
 			parameters.setName("IldaFrame Params");
             polyProcessor.setup();
             parameters.add(polyProcessor.parameters);
-            parameters.add(params.draw.lines.set("Draw Lines", true));
-            parameters.add(params.draw.points.set("Draw Points",true));
-            parameters.add(params.draw.pointNumbers.set("Draw Point nums", false));
-            parameters.add(params.draw.finalPoints.set("Draw finalPoints", false));
+            parameters.add(params.draw.lines.set("Draw Lines", false));
+            parameters.add(params.draw.points.set("Draw Points",false));
+//            parameters.add(params.draw.pointNumbers.set("Draw Point nums", false));
+            parameters.add(params.draw.finalPoints.set("Draw finalPoints", true));
 
             parameters.add(params.output.masterColor.set("masterColor", {1., 1., 1., 1.}, {0.,0.,0.,0.}, {1., 1., 1., 1.}));
             parameters.add(params.output.startBlanks.set("start Blanks",10, 0, 100));
@@ -146,7 +146,7 @@ public:
             s << "params:" << endl;
             s << "draw.lines : " << params.draw.lines << endl;
             s << "draw.point : " << params.draw.points << endl;
-            s << "draw.pointNumbers : " << params.draw.pointNumbers << endl;
+//            s << "draw.pointNumbers : " << params.draw.pointNumbers << endl;
             
             s << "output.masterColor : " << params.output.masterColor << endl;
             s << "output.startBlanks : " << params.output.startBlanks << endl;
@@ -182,7 +182,7 @@ public:
 //                polyProcessor.update(mappedPolys, processedPolys);
 //
 //            }else{
-                polyProcessor.update(origPolys, processedPolys);
+                polyProcessor.update(origPolys, processedPolys, lastPointFrame);
 //            }
         
             // get stats
@@ -488,9 +488,16 @@ public:
                     for(int n=0; n<params.output.endBlanks; n++) {
                         points.push_back( Point(endPoint, ofFloatColor(0, 0, 0, 0) ));
                     }
-                    
                 }
             }
+            
+            if(processedPolys.size() > 0){
+             //   for(int i = processedPolys.size(); i >= 0; i++);
+                if(processedPolys.back().size() > 0){
+                    lastPointFrame = processedPolys.back().getVertices().back();
+                }
+            }
+            
             //            } else {
             if(processedPolys.size()==0){ // for safety
                 ofxIlda::Point point;
@@ -511,5 +518,6 @@ public:
         vector<Poly> origPolys;   // stores the original polys
         vector<Poly> processedPolys;  // stores the processed (smoothed, collapsed, optimized, resampled etc).
         vector<Point> points;   // final points to send
+        glm::vec3 lastPointFrame;
     };
 }
