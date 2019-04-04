@@ -20,8 +20,8 @@ namespace ofxIlda {
 //            ofParameter<bool> collapse;  // (not implemented yet)
             ofParameter<int> targetPointCount;   // how many points in total should ALL paths in this frame be resampled to (zero to ignore)
             ofParameter<float> spacing;  // desired spacing between points. Set automatically by targetPointCount, or set manually. (zero to ignore)
-            ofParameter<bool> doMoveSlowBlack;
-            ofParameter<int> moveSlowSpacingMult;
+//            ofParameter<bool> doMoveSlowBlack;
+//            ofParameter<int> moveSlowSpacingMult;
         } params;
         
         
@@ -33,8 +33,8 @@ namespace ofxIlda {
 //            params.collapse = false;
             params.targetPointCount = 500;
             params.spacing = 0;
-            params.doMoveSlowBlack = true;
-            params.moveSlowSpacingMult = 3;
+//            params.doMoveSlowBlack = false;
+//            params.moveSlowSpacingMult = 3;
         }
         
         //--------------------------------------------------------------
@@ -46,8 +46,8 @@ namespace ofxIlda {
 //            s << "collapse : " << params.collapse << endl;
             s << "targetPointCount : " << params.targetPointCount << endl;
             s << "spacing : " << params.spacing << endl;
-            s << "doMoveSlowBlack : " << params.doMoveSlowBlack << endl;
-            s << "moveSlowSpacingMult : " << params.moveSlowSpacingMult << endl;
+//            s << "doMoveSlowBlack : " << params.doMoveSlowBlack << endl;
+//            s << "moveSlowSpacingMult : " << params.moveSlowSpacingMult << endl;
 
             return s.str();
         }
@@ -61,8 +61,8 @@ namespace ofxIlda {
 //            parameters.add(params.collapse.set("collapse",false));
             parameters.add(params.targetPointCount.set("targetPointCount",500, 0, 1000));
             parameters.add(params.spacing.set("spacing",0., 0., 1.));
-            parameters.add(params.doMoveSlowBlack.set("doMoveSlowBlack", true));
-            parameters.add(params.moveSlowSpacingMult.set("moveSlowSpacingMult",3, 1, 10));
+//            parameters.add(params.doMoveSlowBlack.set("doMoveSlowBlack", false));
+//            parameters.add(params.moveSlowSpacingMult.set("moveSlowSpacingMult",3, 1, 10));
 
         }
         //--------------------------------------------------------------
@@ -99,12 +99,13 @@ namespace ofxIlda {
             
             
             // resample paths based on spacing (either as calculated by targetPointCount, or set by user)
-            if(params.spacing) {
+            if(params.spacing && totalLength > params.spacing) {
                 for(size_t i=0; i<processedPolys.size(); i++) {
                     processedPolys[i].setFromPolyline(processedPolys[i].getResampledBySpacing(params.spacing));
                 }
             }
-            
+          
+/*
         // Add steps for movement in black ! EXPERIMENTAL !
             if(params.doMoveSlowBlack){
                 vector<Poly> blackMovePaths;
@@ -159,8 +160,8 @@ namespace ofxIlda {
                 
                 processedPolys.clear();
                 processedPolys = result;
-                
             }
+*/
         }
     };
 }

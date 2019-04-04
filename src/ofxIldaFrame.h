@@ -38,6 +38,7 @@ public:
                 ofParameter<int> startCount;       // how many end repeats to send in start
                 ofParameter<int> endCount;       // how many end repeats to send
                 ofParameter<int> endBlanks;     // how many blank points to send at path ends
+                ofParameter<float> blackMoveMinDist;     // at which minimum distance do we create additional point to move in back
                 ofParameter<bool> doCapX;        // cap out of range on x (otherwise wraps around)
                 ofParameter<bool> doCapY;        // cap out of range on y (otherwise wraps around)
                 ofParameter<bool> useColorMap;
@@ -89,6 +90,7 @@ public:
             params.output.startCount = 10;
             params.output.endCount = 10;
             params.output.endBlanks = 10;
+            params.output.blackMoveMinDist = 0.01;
             params.output.doCapX = false;
             params.output.doCapY = false;
             params.output.useColorMap = false;
@@ -118,6 +120,7 @@ public:
             parameters.add(params.output.startCount.set("start Count", 10, 0, 100));
             parameters.add(params.output.endCount.set("end Count", 10, 0, 100));
             parameters.add(params.output.endBlanks.set("end Blanks",10, 0, 100));
+            parameters.add(params.output.blackMoveMinDist.set("blackMoveMinDist",0.01, 0.001, 1));
             parameters.add(params.output.doCapX.set("Do Cap X", false));
             parameters.add(params.output.doCapY.set("Do Cap Y", false));
             parameters.add(params.output.useColorMap.set("useColorMap", false));
@@ -153,6 +156,7 @@ public:
             s << "output.startCount : " << params.output.startCount << endl;
             s << "output.endCount : " << params.output.endCount << endl;
             s << "output.endBlanks : " << params.output.endBlanks << endl;
+            s << "output.blackMoveMinDist : " << params.output.blackMoveMinDist << endl;
             s << "output.doCapX : " << params.output.doCapX << endl;
             s << "output.doCapY : " << params.output.doCapY << endl;
 //            s << "output.transform.doMap : " << params.output.transform.doMap << endl;
@@ -440,6 +444,19 @@ public:
                     }
                     endPoint = endPoint - displace;
                     
+                    // Move slowly in black to startpoint
+                    if(distance(lastPointPoly , startPoint) > params.output.blackMoveMinDist){
+                        Poly blackMovePath;
+                        blackMovePath.addVertex(lastPointPoly);
+                        blackMovePath.addVertex(startPoint);
+                        blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
+                        
+                        // blanking at start
+                        for(auto & vertex : blackMovePath.getVertices()) {
+                            points.push_back( Point(vertex, ofFloatColor(0, 0, 0, 0.)));
+                        }
+                    }
+
                     //Fade precalc
                     int fadeToIndex = int(float(polyProcessor.params.targetPointCount)*(params.output.fadeLength));
                     float dimPerStep = 1.0f/float(fadeToIndex);
@@ -486,8 +503,9 @@ public:
                     
                     // blanking at end
                     for(int n=0; n<params.output.endBlanks; n++) {
-                        points.push_back( Point(endPoint, ofFloatColor(0, 0, 0, 0) ));
+                        points.push_back( Point(endPoint, ofFloatColor(1, 0, 0, 0) ));
                     }
+                    lastPointPoly = endPoint;
                 }
             }
             
@@ -518,6 +536,7 @@ public:
         vector<Poly> origPolys;   // stores the original polys
         vector<Poly> processedPolys;  // stores the processed (smoothed, collapsed, optimized, resampled etc).
         vector<Point> points;   // final points to send
-        glm::vec3 lastPointFrame;
+        glm::vec3 lastPointFrame, lastPointPoly;
+
     };
 }
