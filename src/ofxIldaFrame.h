@@ -27,8 +27,10 @@ public:
             struct {
                 ofParameter<bool> lines; // draw lines
                 ofParameter<bool> points;    // draw points
-//                ofParameter<bool> pointNumbers;  // draw point numbers (not implemented yet)
                 ofParameter<bool> finalPoints;  // draw the Final Points
+                ofParameter<bool> moveInBlack;  // draw the Final Points
+                ofParameter<bool> pointNumbers;  // draw point numbers (not implemented yet)
+
             } draw;
             
             struct {
@@ -84,6 +86,8 @@ public:
             params.draw.points = false;
 //            params.draw.pointNumbers = false;
             params.draw.finalPoints = true;
+            params.draw.moveInBlack = true;
+            params.draw.pointNumbers = false;
 
             params.output.masterColor.set(ofFloatColor(1, 1, 1, 1)); // limits the color of the polys to it´s value
             params.output.startBlanks = 10;
@@ -114,13 +118,15 @@ public:
             parameters.add(params.draw.points.set("Draw Points",false));
 //            parameters.add(params.draw.pointNumbers.set("Draw Point nums", false));
             parameters.add(params.draw.finalPoints.set("Draw finalPoints", true));
+            parameters.add(params.draw.moveInBlack.set("Draw moveInBalc (red)", true));
+            parameters.add(params.draw.pointNumbers.set("Draw pointNumbers", false));
 
             parameters.add(params.output.masterColor.set("masterColor", {1., 1., 1., 1.}, {0.,0.,0.,0.}, {1., 1., 1., 1.}));
             parameters.add(params.output.startBlanks.set("start Blanks",10, 0, 100));
             parameters.add(params.output.startCount.set("start Count", 10, 0, 100));
             parameters.add(params.output.endCount.set("end Count", 10, 0, 100));
             parameters.add(params.output.endBlanks.set("end Blanks",10, 0, 100));
-            parameters.add(params.output.blackMoveMinDist.set("blackMoveMinDist",0.01, 0.001, 1));
+            parameters.add(params.output.blackMoveMinDist.set("blackMoveMinDist",0.01, 0.001, 0.1));
             parameters.add(params.output.doCapX.set("Do Cap X", false));
             parameters.add(params.output.doCapY.set("Do Cap Y", false));
             parameters.add(params.output.useColorMap.set("useColorMap", false));
@@ -149,7 +155,9 @@ public:
             s << "params:" << endl;
             s << "draw.lines : " << params.draw.lines << endl;
             s << "draw.point : " << params.draw.points << endl;
-//            s << "draw.pointNumbers : " << params.draw.pointNumbers << endl;
+            s << "draw.finalPoint : " << params.draw.finalPoints << endl;
+            s << "draw.moveInBlack : " << params.draw.moveInBlack << endl;
+            s << "draw.pointNumbers : " << params.draw.pointNumbers << endl;
             
             s << "output.masterColor : " << params.output.masterColor << endl;
             s << "output.startBlanks : " << params.output.startBlanks << endl;
@@ -186,7 +194,7 @@ public:
 //                polyProcessor.update(mappedPolys, processedPolys);
 //
 //            }else{
-                polyProcessor.update(origPolys, processedPolys, lastPointFrame);
+            polyProcessor.update(origPolys, processedPolys);
 //            }
         
             // get stats
@@ -270,6 +278,14 @@ public:
                 mesh.addColor(ofFloatColor(point.r/(float)kIldaMaxIntensity, point.g/(float)kIldaMaxIntensity, point.b/(float)kIldaMaxIntensity, point.a/(float)kIldaMaxIntensity));
                 mesh.addVertex(point.getPosition());
                 
+                if(params.draw.moveInBlack && point.r == 0 && point.g == 0 && point.b == 0 ){
+                    mesh.addColor(ofFloatColor(0,1,1,0.25));
+                    mesh.addVertex(point.getPosition());
+                }
+                
+                if(params.draw.pointNumbers) ofDrawBitmapString(ofToString(i),point.getPosition()+glm::vec2(0.01,0.01));
+
+                
             }
             ofSetColor(255);
             mesh.drawVertices();
@@ -300,7 +316,7 @@ public:
         
         //--------------------------------------------------------------
         Poly& addPoly(const ofPolyline& polyline) {
-            return addPoly(polyline);
+            return addPoly(polyline, ofFloatColor::white);
         }
         
         //--------------------------------------------------------------
@@ -451,9 +467,13 @@ public:
                         blackMovePath.addVertex(startPoint);
                         blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
                         
+                        if(polyProcessor.params.spacing == 0) {
+                            blackMovePath.getResampledByCount(200);
+                        }
+                        
                         // blanking at start
                         for(auto & vertex : blackMovePath.getVertices()) {
-                            points.push_back( Point(vertex, ofFloatColor(0, 0, 0, 0.)));
+                            points.push_back( Point(vertex, ofFloatColor(0, 0, 0, 0)));
                         }
                     }
 
@@ -503,24 +523,19 @@ public:
                     
                     // blanking at end
                     for(int n=0; n<params.output.endBlanks; n++) {
-                        points.push_back( Point(endPoint, ofFloatColor(1, 0, 0, 0) ));
+                        points.push_back( Point(endPoint, ofFloatColor(0, 0, 0, 0) ));
                     }
+            
                     lastPointPoly = endPoint;
                 }
             }
-            
-            if(processedPolys.size() > 0){
-             //   for(int i = processedPolys.size(); i >= 0; i++);
-                if(processedPolys.back().size() > 0){
-                    lastPointFrame = processedPolys.back().getVertices().back();
-                }
-            }
-            
-            //            } else {
+        
             if(processedPolys.size()==0){ // for safety
                 ofxIlda::Point point;
                 point.set(glm::vec3(0.5,0.5,0.0), ofFloatColor(0));
                 points.push_back(point);
+                lastPointPoly = glm::vec3(0.5,0.5,0.0);
+
             }
         }
         
@@ -536,7 +551,6 @@ public:
         vector<Poly> origPolys;   // stores the original polys
         vector<Poly> processedPolys;  // stores the processed (smoothed, collapsed, optimized, resampled etc).
         vector<Point> points;   // final points to send
-        glm::vec3 lastPointFrame, lastPointPoly;
-
+        glm::vec3 lastPointPoly;
     };
 }

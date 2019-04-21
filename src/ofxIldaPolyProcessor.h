@@ -66,7 +66,7 @@ namespace ofxIlda {
 
         }
         //--------------------------------------------------------------
-        void update(const vector<Poly> &origPolys, vector<Poly> &processedPolys, glm::vec3 &lastPointPreviousFrame) {
+        void update(const vector<Poly> &origPolys, vector<Poly> &processedPolys) {
             float totalLength = 0;
             vector<int> pathLengths;
             processedPolys = origPolys;
@@ -104,64 +104,6 @@ namespace ofxIlda {
                     processedPolys[i].setFromPolyline(processedPolys[i].getResampledBySpacing(params.spacing));
                 }
             }
-          
-/*
-        // Add steps for movement in black ! EXPERIMENTAL !
-            if(params.doMoveSlowBlack){
-                vector<Poly> blackMovePaths;
-                vector<Poly> result ;
-
-                // Make a line from the last point of the previous frame to the first of the new frame.
-                if(processedPolys.size()) {
-                    if(processedPolys.front().size()) {
-                        if(distance(lastPointPreviousFrame , processedPolys.front().getVertices().front()) > params.spacing*params.moveSlowSpacingMult){
-                            Poly blackMovePath;
-                            blackMovePath.addVertex(lastPointPreviousFrame);
-                            blackMovePath.addVertex(processedPolys.front().getVertices().front());
-                            if(params.spacing > 0.){
-                                blackMovePath = blackMovePath.getResampledBySpacing(params.spacing*params.moveSlowSpacingMult);
-                            } else {
-                                blackMovePath = blackMovePath.getResampledBySpacing(0.005*params.moveSlowSpacingMult);
-                            }
-                            blackMovePath.color = ofFloatColor(0.0, 0.0, 0.0);
-                            
-                            result.push_back(blackMovePath);
-                        }
-                    }
-                }
-
-                for(size_t i=0; i<processedPolys.size(); i++) {
-                    int numOfPoints = processedPolys[i].size();
-                    Poly blackMovePath;
-                    blackMovePath.addVertex(processedPolys[i].getVertices().back());
-                    blackMovePath.addVertex(processedPolys[(i+1)%processedPolys.size()].getVertices().front());
-                    if(params.spacing > 0.){
-                        blackMovePath = blackMovePath.getResampledBySpacing(params.spacing*params.moveSlowSpacingMult);
-                    } else {
-                        blackMovePath = blackMovePath.getResampledBySpacing(0.005*params.moveSlowSpacingMult);
-                    }
-                    blackMovePath.color = ofFloatColor(0.0, 0.0, 0.0);
-                    
-                    if(blackMovePath.size()) blackMovePaths.push_back(blackMovePath);
-                }
-                
-                // Combine the two lists
-                
-                auto m = std::min( processedPolys.size(), blackMovePaths.size() ) ;
-                
-                for( std::size_t i=0 ; i<m ; ++i )
-                {
-                    result.push_back(processedPolys[i]) ;
-                    result.push_back(blackMovePaths[i]) ;
-                }
-                if( m < processedPolys.size() ) result.insert( result.end(), processedPolys.begin()+m, processedPolys.end() ) ;
-                if( m < blackMovePaths.size() ) result.insert( result.end(), blackMovePaths.begin()+m, blackMovePaths.end() ) ;
-                
-                
-                processedPolys.clear();
-                processedPolys = result;
-            }
-*/
         }
     };
 }
