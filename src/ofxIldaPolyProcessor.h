@@ -66,9 +66,10 @@ namespace ofxIlda {
 
         }
         //--------------------------------------------------------------
-        void update(const vector<Poly> &origPolys, vector<Poly> &processedPolys) {
+        void update(const vector<Poly> &origPolys, vector<vector<Point>> &processedPoints) {
             float totalLength = 0;
             vector<int> pathLengths;
+            vector<Poly> processedPolys;
             processedPolys = origPolys;
             for(size_t i=0; i<processedPolys.size(); i++) {
                 if(processedPolys[i].size()) {
@@ -88,10 +89,7 @@ namespace ofxIlda {
                     pathLengths.push_back(0);
                 }
             }
-            
 
-            
-            
             // calculate spacing based on desired total number of points
             if(params.targetPointCount > 0 && totalLength > 0) {
                 params.spacing = totalLength / params.targetPointCount;
@@ -103,6 +101,15 @@ namespace ofxIlda {
                 for(size_t i=0; i<processedPolys.size(); i++) {
                     processedPolys[i].setFromPolyline(processedPolys[i].getResampledBySpacing(params.spacing));
                 }
+            }
+            
+            // convert to points
+            for (auto & poly : processedPolys){
+                vector<Point> points;
+                for ( auto & point : poly.getVertices()){
+                    points.push_back(Point(point, poly.color));
+                }
+                processedPoints.push_back(points);
             }
         }
     };

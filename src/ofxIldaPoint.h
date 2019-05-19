@@ -1,8 +1,8 @@
 //
 //  ofxIldaPoint.h
-//  ofxIlda
+//  interactivelaser
 //
-//  Created by Memo Akten on 09/05/2013.
+//  Created by 武内 満 on 2013/06/02.
 //
 //
 
@@ -10,75 +10,24 @@
 
 namespace ofxIlda {
     
-#define kIldaMinPoint -32768
-#define kIldaMaxPoint 32767
-#define kIldaDimension (kIldaMaxPoint - kIldaMinPoint)
-#define kIldaMaxIntensity 65535
-    
-    class Point {
-    public:
-        Point() : x(0), y(0), r(0), g(0), b(0), a(0) {}
-        Point(int16_t x, int16_t y, int16_t r=0, int16_t g=0, int16_t b=0, int16_t a=0): x(x), y(y), r(r), g(g), b(b), a(a) {}
-        Point(glm::vec3 p, ofFloatColor c, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) { set(p, c, pmin, pmax); }
-        Point(glm::vec3 p, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) { setPosition(p, pmin, pmax); }
+    class Point: public glm::vec2{
+	public:
+		ofFloatColor color;
+		Point() : color(ofFloatColor(1, 1, 1, 1)) {}
+
+        Point(ofFloatColor color) : color(color) {}
         
-        int16_t x;
-        int16_t y;
-        uint16_t r;
-        uint16_t g;
-        uint16_t b;
-        uint16_t a;
-        uint16_t u1;  // what are these for? standard ILDA or just etherdream?
-        uint16_t u2;
+        Point(const Point& point) : glm::vec2(point), color(point.color) {}
         
-        //--------------------------------------------------------------
-        void set(int16_t x, int16_t y) {
-            this->x = x;
-            this->y = y;
+        Point(const glm::vec2& pos) : glm::vec2(pos), color(ofFloatColor(1, 1, 1, 1)) {}
+
+        Point(const glm::vec2& pos, ofFloatColor color) : glm::vec2(pos), color(color) {}
+        
+        Point(const float posX, const float posY, ofFloatColor color = ofFloatColor(1, 1, 1, 1)) : glm::vec2(posX, posY), color(color) {}
+        
+        void setPosition(const glm::vec2& pos){
+            this->x = pos.x;
+            this->y = pos.y;
         }
-        
-        //--------------------------------------------------------------
-        void set(int16_t x, int16_t y, int16_t r, int16_t g, int16_t b, int16_t a) {
-            this->x = x;
-            this->y = y;
-            this->r = r;
-            this->g = g;
-            this->b = b;
-            this->a = a;
-        }
-        
-        
-        //--------------------------------------------------------------
-        // set color and position mapped from custom range (defaults to normalized)
-        void set(glm::vec3 p, ofFloatColor c, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) {
-            set(
-                ofMap(p.x, pmin.x, pmax.x, kIldaMinPoint, kIldaMaxPoint),
-                ofMap(p.y, pmin.y, pmax.y, kIldaMinPoint, kIldaMaxPoint),
-                c.r * kIldaMaxIntensity,
-                c.g * kIldaMaxIntensity,
-                c.b * kIldaMaxIntensity,
-                c.a * kIldaMaxIntensity
-                );
-        }
-        
-        //--------------------------------------------------------------
-        // set position mapped from custom range (defaults to normalized)
-        void setPosition(glm::vec3 p, glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) {
-            set(
-                ofMap(p.x, pmin.x, pmax.x, kIldaMinPoint, kIldaMaxPoint),
-                ofMap(p.y, pmin.y, pmax.y, kIldaMinPoint, kIldaMaxPoint)
-                );
-        }
-        
-        
-        //--------------------------------------------------------------
-        // gets position of point mapped to desired range (defaults to normalized)
-        glm::vec3 getPosition(glm::vec3 pmin = {0,0,0}, glm::vec3 pmax = {1,1,1}) {
-            return glm::vec3(
-                           ofMap(x, kIldaMinPoint, kIldaMaxPoint, pmin.x, pmax.x),
-                           ofMap(y, kIldaMinPoint, kIldaMaxPoint, pmin.y, pmax.y),0
-                           );
-        }
-        
-    };
+	};
 }

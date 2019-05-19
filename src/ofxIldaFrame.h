@@ -16,6 +16,7 @@
 #include "ofMain.h"
 #include "ofxIldaPoly.h"
 #include "ofxIldaPoint.h"
+#include "ofxIldaPointDac.h"
 #include "ofxIldaPolyProcessor.h"
 
 namespace ofxIlda {
@@ -25,7 +26,7 @@ public:
 		ofParameterGroup parameters;
         struct {
             struct {
-                ofParameter<bool> lines; // draw lines
+//                ofParameter<bool> lines; // draw lines
                 ofParameter<bool> points;    // draw points
                 ofParameter<bool> finalPoints;  // draw the Final Points
                 ofParameter<bool> moveInBlack;  // draw the Final Points
@@ -47,8 +48,8 @@ public:
                 ofParameter<bool> doDisplace;
                 ofParameter<float> displaceAmountHorizontal;
                 ofParameter<float> displaceAmountVertical;
-                ofParameter<bool> doFade;
-                ofParameter<float> fadeLength;
+//                ofParameter<bool> doFade;
+//                ofParameter<float> fadeLength;
 
                 ofPixels displacementMap;
 
@@ -67,7 +68,7 @@ public:
         PolyProcessor polyProcessor; // params and functionality for processing the polys
         
         struct {
-            int pointCountOrig;    // READONLY current total number of points across all paths (excluding blanks and end repititons)
+            int pointCountInput;    // READONLY current total number of points across all paths (excluding blanks and end repititons)
             int pointCountProcessed; // same as above, except AFTER being processed
         } stats;
         
@@ -82,7 +83,7 @@ public:
 //            memset(&params, 0, sizeof(params));  // safety catch all default to zero
 //            memset(&stats, 0, sizeof(stats));  // safety catch all default to zero
 			
-            params.draw.lines = false;
+//            params.draw.lines = false;
             params.draw.points = false;
 //            params.draw.pointNumbers = false;
             params.draw.finalPoints = true;
@@ -101,8 +102,8 @@ public:
             params.output.doDisplace = false;
             params.output.displaceAmountHorizontal = 0.;
             params.output.displaceAmountVertical = 0.;
-            params.output.doFade = false;
-            params.output.fadeLength = 0.;
+//            params.output.doFade = false;
+//            params.output.fadeLength = 0.;
             
 //            params.output.transform.doMap = false;
             params.output.transform.doFlipX = false;
@@ -114,7 +115,7 @@ public:
 			parameters.setName("IldaFrame Params");
             polyProcessor.setup();
             parameters.add(polyProcessor.parameters);
-            parameters.add(params.draw.lines.set("Draw Lines", false));
+//            parameters.add(params.draw.lines.set("Draw Lines", false));
             parameters.add(params.draw.points.set("Draw Points",false));
 //            parameters.add(params.draw.pointNumbers.set("Draw Point nums", false));
             parameters.add(params.draw.finalPoints.set("Draw finalPoints", true));
@@ -133,8 +134,8 @@ public:
             parameters.add(params.output.doDisplace.set("doDisplace", false));
             parameters.add(params.output.displaceAmountHorizontal.set("displaceAmountHorizontal", 0., -1., 1.));
             parameters.add(params.output.displaceAmountVertical.set("displaceAmountVertical", 0., -1., 1.));
-            parameters.add(params.output.doFade.set("doFade", false));
-            parameters.add(params.output.fadeLength.set("fadeLength", 0., 0., 1.));
+//            parameters.add(params.output.doFade.set("doFade", false));
+//            parameters.add(params.output.fadeLength.set("fadeLength", 0., 0., 1.));
 
             parameters.add(params.output.transform.doFlipX.set("Do Flip X", false));
             parameters.add(params.output.transform.doFlipY.set("Do Flip Y", false));
@@ -153,7 +154,7 @@ public:
             s << polyProcessor.getString();
             
             s << "params:" << endl;
-            s << "draw.lines : " << params.draw.lines << endl;
+//            s << "draw.lines : " << params.draw.lines << endl;
             s << "draw.point : " << params.draw.points << endl;
             s << "draw.finalPoint : " << params.draw.finalPoints << endl;
             s << "draw.moveInBlack : " << params.draw.moveInBlack << endl;
@@ -176,7 +177,7 @@ public:
             s << endl;
             
             s << "stats:" << endl;
-            s << "stats.pointCountOrig : " << stats.pointCountOrig << endl;
+            s << "stats.pointCountInput : " << stats.pointCountInput << endl;
             s << "stats.pointCountProcessed : " << stats.pointCountProcessed << endl;
             
             s << polyProcessor.getString();
@@ -188,24 +189,21 @@ public:
         
         //--------------------------------------------------------------
         void update() {
-//            if(params.output.transform.doMap){
-//                vector<Poly> mappedPolys;
-//                mapper.update(origPolys, mappedPolys);
-//                polyProcessor.update(mappedPolys, processedPolys);
-//
-//            }else{
-            polyProcessor.update(origPolys, processedPolys);
-//            }
-        
-            // get stats
-            stats.pointCountOrig = 0;
-            stats.pointCountProcessed = 0;
-            for(size_t i=0; i<processedPolys.size(); i++) {
-                stats.pointCountOrig += origPolys[i].size();
-                stats.pointCountProcessed += processedPolys[i].size();
+
+            stats.pointCountInput = 0;
+            for(auto & origPoly : origPolys) {
+                stats.pointCountInput += origPoly.size();
+            }
+            for(auto & points : pointGroups) {
+                stats.pointCountInput += points.size();
             }
             
+            polyProcessor.update(origPolys, pointGroups);
+
             updateFinalPoints();
+            
+            stats.pointCountProcessed = 0;
+            stats.pointCountProcessed = pointsDac.size();
         }
         
         
@@ -219,9 +217,9 @@ public:
             ofTranslate(x, y);
             ofScale(w, h);
             
-            if(params.draw.lines) {
-                drawLines();
-            }
+//            if(params.draw.lines) {
+//                drawLines();
+//            }
             if(params.draw.points) {
                 drawPoints();
             }
@@ -234,36 +232,45 @@ public:
 //            mapper.draw(x,y,w,h);
         }
         
-        void drawLines(){
-            ofSetLineWidth(2);
-            for(size_t i=0; i<processedPolys.size(); i++) {
-                ofPolyline &poly = processedPolys[i];
-                ofFloatColor &pcolor = processedPolys[i].color;
-                ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
-                poly.draw();
-            }
-        }
+//        void drawLines(){
+//            ofSetLineWidth(2);
+//            for(size_t i=0; i<processedPolys.size(); i++) {
+//                ofPolyline &poly = processedPolys[i];
+//                ofFloatColor &pcolor = processedPolys[i].color;
+//                ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
+//                poly.draw();
+//            }
+//        }
         
         void drawPoints(){
             ofMesh mesh;
             mesh.setMode(OF_PRIMITIVE_POINTS);
             glEnable(GL_POINT_SMOOTH);
             glPointSize(5);
-            
-            
-            for(size_t i=0; i<processedPolys.size(); i++) {
-                ofPolyline &poly = processedPolys[i];
-                ofFloatColor &pcolor = processedPolys[i].color;
-                ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
-                
-                for(size_t i=0; i<poly.size(); i++) {
-                    auto &p = poly[i];
-                    mesh.addVertex(glm::vec3(p.x, p.y,0.));
+            ofSetColor(255);
+
+            for(auto & points : pointGroups){
+                for(auto & point : points){
+                    mesh.addColor(point.color);
+                    mesh.addVertex(glm::vec3(point,0.));
                 }
                 mesh.drawVertices();
                 mesh.clearVertices();
-                
             }
+            
+//            for(size_t i=0; i<processedPolys.size(); i++) {
+//                ofPolyline &poly = processedPolys[i];
+//                ofFloatColor &pcolor = processedPolys[i].color;
+//                ofSetColor(pcolor.r*255, pcolor.g*255, pcolor.b*255);
+//
+//                for(size_t i=0; i<poly.size(); i++) {
+//                    auto &p = poly[i];
+//                    mesh.addVertex(glm::vec3(p.x, p.y,0.));
+//                }
+//                mesh.drawVertices();
+//                mesh.clearVertices();
+//
+//            }
         }
         
         void drawFinalPoints(){
@@ -271,16 +278,16 @@ public:
             mesh.setMode(OF_PRIMITIVE_POINTS);
             glEnable(GL_POINT_SMOOTH);
             glPointSize(5);
+            ofSetColor(255);
             
-            
-            for(size_t i=0; i<points.size(); i++) {
-                Point &point = points[i];
+            for(size_t i=0; i<pointsDac.size(); i++) {
+                PointDac &point = pointsDac[i];
                 mesh.addColor(ofFloatColor(point.r/(float)kIldaMaxIntensity, point.g/(float)kIldaMaxIntensity, point.b/(float)kIldaMaxIntensity, point.a/(float)kIldaMaxIntensity));
-                mesh.addVertex(point.getPosition());
-                
+                mesh.addVertex(glm::vec3(point.getPosition(), 0));
+
                 if(params.draw.moveInBlack && point.r == 0 && point.g == 0 && point.b == 0 ){
                     mesh.addColor(ofFloatColor(0,1,1,0.25));
-                    mesh.addVertex(point.getPosition());
+                    mesh.addVertex(glm::vec3(point.getPosition(), 0));
                 }
                 
                 if(params.draw.pointNumbers) ofDrawBitmapString(ofToString(i),point.getPosition()+glm::vec2(0.01,0.01));
@@ -295,7 +302,8 @@ public:
         //--------------------------------------------------------------
         void clear() {
             origPolys.clear();
-            processedPolys.clear();
+            pointGroups.clear();
+            pointsDac.clear();
         }
         
         //--------------------------------------------------------------
@@ -356,18 +364,18 @@ public:
         }
         
         //--------------------------------------------------------------
-        Poly& getPolyProcessed(int i) {
-            return processedPolys[i];
+        vector<Point>& getPointGroup(int i) {
+            return pointGroups[i];
         }
-        
+
         //--------------------------------------------------------------
         vector<Poly> &getPolys() {
             return origPolys;
         }
         
         //--------------------------------------------------------------
-        vector<Poly> &getProcessedPolys() {
-            return processedPolys;
+        vector<vector<Point>> &getPointGroups() {
+            return pointGroups;
         }
         
         //--------------------------------------------------------------
@@ -376,10 +384,29 @@ public:
             return origPolys.back();
         }
         
+        //--------------------------------------------------------------
+        vector<Point>& addPoints(const vector<Point> & points) {
+            pointGroups.push_back(points);
+            return pointGroups.back();
+        }
         
         //--------------------------------------------------------------
-        const vector<Point>& getPoints() const {
-            return points;
+        vector<Point>& addPoints(const Point & point, const int repeat = 1) {
+            vector<Point> points;
+            for(int i = 0; i < repeat; i++){
+                points.push_back(point);
+            }
+            return addPoints(points);
+        }
+        
+        //--------------------------------------------------------------
+        vector<Point>& addPoints(const glm::vec2 pos, ofFloatColor color = ofFloatColor(1,1,1,1) , const int repeat = 1) {
+            return addPoints(Point(pos, color), repeat);
+        }
+        
+        //--------------------------------------------------------------
+        const vector<PointDac>& getPointsDac() const {
+            return pointsDac;
         }
         
         //--------------------------------------------------------------
@@ -400,20 +427,20 @@ public:
         }
 
         //--------------------------------------------------------------
-        glm::vec3 transformPoint(glm::vec3 p) const {
+        Point transformPoint(Point & p) const {
             // flip
             if(params.output.transform.doFlipX) p.x = 1 - p.x;
             if(params.output.transform.doFlipY) p.y = 1 - p.y;
             
             // scale
             if(glm::length2(params.output.transform.scale.get()) > 0) {
-                p -= glm::vec3(0.5, 0.5, 0);
-                p *= glm::vec3(params.output.transform.scale.get(),0);
-                p += glm::vec3(0.5, 0.5, 0);
+                p -= glm::vec2(0.5, 0.5);
+                p *= glm::vec2(params.output.transform.scale.get());
+                p += glm::vec2(0.5, 0.5);
             }
             
             // offset
-            p += glm::vec3(params.output.transform.offset.get(), 0);
+            p += glm::vec2(params.output.transform.offset.get());
             
             // cap or wrap
             if(p.x < 0) {
@@ -430,41 +457,30 @@ public:
             
             return p;
         }
+
         
         //--------------------------------------------------------------
         void updateFinalPoints() {
-            points.clear();
-            for(size_t i=0; i<processedPolys.size(); i++) {
-                ofPolyline &poly = processedPolys[i];
-                ofFloatColor pointColorOriginal = processedPolys[i].color;
-                ofFloatColor &pcolor = processedPolys[i].color;
+            pointsDac.clear();
+            for(auto & pointGroup : pointGroups) {
                 
-                if(poly.size() > 0) {
+                if(pointGroup.size() > 0) {
                     
-                    glm::vec2 displace = glm::vec2(0.);
-
                     
-                    glm::vec3 startPoint = transformPoint(poly.getVertices().front());
+                    Point startPoint = transformPoint(pointGroup.front());
+                    Point endPoint = transformPoint(pointGroup.back());
+                    
                     if(params.output.doDisplace){
-                        ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(startPoint.x*params.output.displacementMap.getWidth(), startPoint.y*params.output.displacementMap.getHeight()));
-                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmountHorizontal;
-                        displace.x = displaceColor.getBrightness()*-(float)params.output.displaceAmountVertical;
+                        displaceFromMap(startPoint);
+                        displaceFromMap(endPoint);
                     }
-                    startPoint = startPoint - displace;
-                    
-                    glm::vec3 endPoint = transformPoint(poly.getVertices().back());
-                    if(params.output.doDisplace){
-                        ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(endPoint.x*params.output.displacementMap.getWidth(), endPoint.y*params.output.displacementMap.getHeight()));
-                        displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmountHorizontal;
-                        displace.x = displaceColor.getBrightness()*-(float)params.output.displaceAmountVertical;
-                    }
-                    endPoint = endPoint - displace;
+                
                     
                     // Move slowly in black to startpoint
-                    if(distance(lastPointPoly , startPoint) > params.output.blackMoveMinDist){
+                    if(glm::distance(glm::vec3(lastPointPoly, 0), glm::vec3(startPoint, 0)) > params.output.blackMoveMinDist){
                         Poly blackMovePath;
-                        blackMovePath.addVertex(lastPointPoly);
-                        blackMovePath.addVertex(startPoint);
+                        blackMovePath.addVertex(glm::vec3(lastPointPoly, 0));
+                        blackMovePath.addVertex(glm::vec3(startPoint, 0));
                         blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
                         
                         if(polyProcessor.params.spacing == 0) {
@@ -473,70 +489,68 @@ public:
                         
                         // blanking at start
                         for(auto & vertex : blackMovePath.getVertices()) {
-                            points.push_back( Point(vertex, ofFloatColor(0, 0, 0, 0)));
+                            pointsDac.push_back( PointDac(vertex, ofFloatColor(0, 0, 0, 0)));
                         }
                     }
-
-                    //Fade precalc
-                    int fadeToIndex = int(float(polyProcessor.params.targetPointCount)*(params.output.fadeLength));
-                    float dimPerStep = 1.0f/float(fadeToIndex);
+                    
                     
                     // blanking at start
                     for(int n=0; n<params.output.startBlanks; n++) {
-                        points.push_back( Point(startPoint, ofFloatColor(0, 0, 0, 0)));
+                        pointsDac.push_back( PointDac(startPoint, ofFloatColor(0, 0, 0, 0)));
                     }
                     
-                    if(!params.output.doFade){
-                        // repeat at start
-                        for(int n=0; n<params.output.startCount; n++) {
-                            
-                            if(params.output.useColorMap) pcolor = ofFloatColor(params.output.colorMap.getColor(startPoint.x*params.output.colorMap.getWidth(), startPoint.y*params.output.colorMap.getHeight()))*pointColorOriginal;
-                            
-                            points.push_back( Point(startPoint, limitColor(pcolor, params.output.masterColor)) );
-                        }
+                    // repeat at start
+                    for(int n=0; n<params.output.startCount; n++) {
+                        if(params.output.useColorMap) startPoint.color = getColorFromMap(startPoint);
+                        pointsDac.push_back( PointDac(startPoint, limitColor(startPoint.color, params.output.masterColor)) );
                     }
                     
                     
                     // add points
-                    float fadeDimAmt = 0.;
-                    for(int j=0; j<poly.size(); j++) {
-                        ofFloatColor color = pcolor;
-                        if(params.output.useColorMap) color = ofFloatColor(params.output.colorMap.getColor(poly[j].x*params.output.colorMap.getWidth(), poly[j].y*params.output.colorMap.getHeight()))*pointColorOriginal;
-                        
-                        if(params.output.doDisplace){
-                            ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(poly[j].x*params.output.displacementMap.getWidth(), poly[j].y*params.output.displacementMap.getHeight()));
-                            displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmountHorizontal;
-                            displace.x = displaceColor.getBrightness()*-(float)params.output.displaceAmountVertical;
-                        }
-                        if(params.output.doFade && j<fadeToIndex){
-                            fadeDimAmt += dimPerStep;
-                            color = color*fadeDimAmt;
-                        }
-                        points.push_back( Point(transformPoint(poly[j])-displace, limitColor(color, params.output.masterColor)) );
+                    for(auto & point : pointGroup) {
+                        transformPoint(point);
+                        if(params.output.useColorMap) point.color = getColorFromMap(point);
+                        if(params.output.doDisplace) displaceFromMap(point);
+                        pointsDac.push_back( PointDac(point, limitColor(point.color, params.output.masterColor)) );
                     }
                     
-                    // repeat at end
-                    for(int n=0; n<params.output.endCount; n++) {
-                        if(params.output.useColorMap) pcolor = ofFloatColor(params.output.colorMap.getColor(endPoint.x*params.output.colorMap.getWidth(), endPoint.y*params.output.colorMap.getHeight()))*pointColorOriginal;
-                        points.push_back( Point(endPoint, limitColor(pcolor, params.output.masterColor)) );
+                    // repeat at start
+                    for(int n=0; n<params.output.startCount; n++) {
+                        if(params.output.useColorMap) endPoint.color = getColorFromMap(endPoint);
+                        pointsDac.push_back( PointDac(endPoint, limitColor(endPoint.color, params.output.masterColor)) );
                     }
                     
-                    // blanking at end
+                    // blanking at start
                     for(int n=0; n<params.output.endBlanks; n++) {
-                        points.push_back( Point(endPoint, ofFloatColor(0, 0, 0, 0) ));
+                        pointsDac.push_back( PointDac(endPoint, ofFloatColor(0, 0, 0, 0) ));
                     }
-            
+                    
                     lastPointPoly = endPoint;
                 }
             }
-        
-            if(processedPolys.size()==0){ // for safety
-                ofxIlda::Point point;
+            
+            
+            if(pointGroups.size()==0){ // for safety
+                ofxIlda::PointDac point;
                 point.set(glm::vec3(0.5,0.5,0.0), ofFloatColor(0));
-                points.push_back(point);
-                lastPointPoly = glm::vec3(0.5,0.5,0.0);
-
+                pointsDac.push_back(point);
+                lastPointPoly = Point(0.5,0.5);
+                
             }
+        }
+        
+        Point displaceFromMap(Point & point){
+            ofFloatColor displaceColor = ofFloatColor(params.output.displacementMap.getColor(point.x*params.output.displacementMap.getWidth(), point.y*params.output.displacementMap.getHeight()));
+            glm::vec2 displace = glm::vec2(0.);
+            displace.y = displaceColor.getBrightness()*(float)params.output.displaceAmountHorizontal;
+            displace.x = displaceColor.getBrightness()*-(float)params.output.displaceAmountVertical;
+            
+            point.setPosition(point-displace);
+            return point;
+        }
+        
+        ofFloatColor getColorFromMap(glm::vec2 pos){
+            return ofFloatColor(params.output.colorMap.getColor(pos.x*params.output.colorMap.getWidth(), pos.y*params.output.colorMap.getHeight()));
         }
         
         ofFloatColor limitColor(ofFloatColor a, ofFloatColor b){
@@ -549,8 +563,9 @@ public:
         
     protected:
         vector<Poly> origPolys;   // stores the original polys
-        vector<Poly> processedPolys;  // stores the processed (smoothed, collapsed, optimized, resampled etc).
-        vector<Point> points;   // final points to send
-        glm::vec3 lastPointPoly;
+        vector<vector<Point>> pointGroups;   // groups of Raw Points
+
+        vector<PointDac> pointsDac;   // final points to send
+        Point lastPointPoly;
     };
 }
