@@ -42,6 +42,7 @@ public:
                 ofParameter<int> endCount;       // how many end repeats to send
                 ofParameter<int> endBlanks;     // how many blank points to send at path ends
                 ofParameter<float> blackMoveMinDist;     // at which minimum distance do we create additional point to move in back
+                ofParameter<float> galvoCorrection;     // Correcting one of the axis to compensate for mirror distortion based on the offset
                 ofParameter<bool> doCapX;        // cap out of range on x (otherwise wraps around)
                 ofParameter<bool> doCapY;        // cap out of range on y (otherwise wraps around)
                 ofParameter<bool> useColorMap;
@@ -96,6 +97,7 @@ public:
             params.output.endCount = 10;
             params.output.endBlanks = 10;
             params.output.blackMoveMinDist = 0.01;
+            params.output.galvoCorrection = 0;
             params.output.doCapX = false;
             params.output.doCapY = false;
             params.output.useColorMap = false;
@@ -128,6 +130,7 @@ public:
             parameters.add(params.output.endCount.set("end Count", 10, 0, 100));
             parameters.add(params.output.endBlanks.set("end Blanks",10, 0, 100));
             parameters.add(params.output.blackMoveMinDist.set("blackMoveMinDist",0.01, 0.001, 0.1));
+            parameters.add(params.output.galvoCorrection.set("galvoCorrection",0., -1, 1));
             parameters.add(params.output.doCapX.set("Do Cap X", false));
             parameters.add(params.output.doCapY.set("Do Cap Y", false));
             parameters.add(params.output.useColorMap.set("useColorMap", false));
@@ -166,6 +169,7 @@ public:
             s << "output.endCount : " << params.output.endCount << endl;
             s << "output.endBlanks : " << params.output.endBlanks << endl;
             s << "output.blackMoveMinDist : " << params.output.blackMoveMinDist << endl;
+            s << "output.galvoCorrection : " << params.output.galvoCorrection << endl;
             s << "output.doCapX : " << params.output.doCapX << endl;
             s << "output.doCapY : " << params.output.doCapY << endl;
 //            s << "output.transform.doMap : " << params.output.transform.doMap << endl;
@@ -202,12 +206,25 @@ public:
 
             updateFinalPoints();
             
+            if(params.output.galvoCorrection !=0){
+                for(auto & point : pointsDac){
+                    float offYZero = abs(float(point.y)/kIldaMaxPoint);
+                    float offXZero = (float(point.x)/kIldaMaxPoint);
+                    point.x = point.x + (5000*params.output.galvoCorrection)*cos(offYZero*PI/2)*offXZero;
+                }
+            }
+            
             stats.pointCountProcessed = 0;
             stats.pointCountProcessed = pointsDac.size();
         }
         
         
         //--------------------------------------------------------------
+        void draw(ofRectangle rect) {
+            draw(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight());
+        }
+
+        
         void draw(float x=0, float y=0, float w=0, float h=0) {
             if(w==0) w = ofGetWidth();
             if(h==0) h = ofGetHeight();
@@ -385,6 +402,13 @@ public:
         }
         
         //--------------------------------------------------------------
+        void addPointGroups(const vector<vector<Point>> & pointG) {
+            for(auto & pG : pointG){
+                pointGroups.push_back(pG);
+            }
+        }
+        
+        //--------------------------------------------------------------
         vector<Point>& addPoints(const vector<Point> & points) {
             pointGroups.push_back(points);
             return pointGroups.back();
@@ -466,9 +490,11 @@ public:
                 
                 if(pointGroup.size() > 0) {
                     
-                    
-                    Point startPoint = transformPoint(pointGroup.front());
-                    Point endPoint = transformPoint(pointGroup.back());
+                    Point startPoint = pointGroup.front();
+                    Point endPoint = pointGroup.back();
+                    transformPoint(startPoint);
+                    transformPoint(endPoint);
+
                     
                     if(params.output.doDisplace){
                         displaceFromMap(startPoint);
@@ -477,22 +503,7 @@ public:
                 
                     
                     // Move slowly in black to startpoint
-                    if(glm::distance(glm::vec3(lastPointPoly, 0), glm::vec3(startPoint, 0)) > params.output.blackMoveMinDist){
-                        Poly blackMovePath;
-                        blackMovePath.addVertex(glm::vec3(lastPointPoly, 0));
-                        blackMovePath.addVertex(glm::vec3(startPoint, 0));
-                        blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
-                        
-                        if(polyProcessor.params.spacing == 0) {
-                            blackMovePath.getResampledByCount(200);
-                        }
-                        
-                        // blanking at start
-                        for(auto & vertex : blackMovePath.getVertices()) {
-                            pointsDac.push_back( PointDac(vertex, ofFloatColor(0, 0, 0, 0)));
-                        }
-                    }
-                    
+                    addMoveBlack(startPoint);
                     
                     // blanking at start
                     for(int n=0; n<params.output.startBlanks; n++) {
@@ -514,13 +525,13 @@ public:
                         pointsDac.push_back( PointDac(point, limitColor(point.color, params.output.masterColor)) );
                     }
                     
-                    // repeat at start
-                    for(int n=0; n<params.output.startCount; n++) {
+                    // repeat at end
+                    for(int n=0; n<params.output.endCount; n++) {
                         if(params.output.useColorMap) endPoint.color = getColorFromMap(endPoint);
                         pointsDac.push_back( PointDac(endPoint, limitColor(endPoint.color, params.output.masterColor)) );
                     }
                     
-                    // blanking at start
+                    // blanking at end
                     for(int n=0; n<params.output.endBlanks; n++) {
                         pointsDac.push_back( PointDac(endPoint, ofFloatColor(0, 0, 0, 0) ));
                     }
@@ -531,11 +542,31 @@ public:
             
             
             if(pointGroups.size()==0){ // for safety
+                // Move slowly in black to blackPoint
+                addMoveBlack(glm::vec2(0.5,0.5));
                 ofxIlda::PointDac point;
                 point.set(glm::vec3(0.5,0.5,0.0), ofFloatColor(0));
                 pointsDac.push_back(point);
                 lastPointPoly = Point(0.5,0.5);
                 
+            }
+        }
+        
+        void addMoveBlack(glm::vec2 target){
+            // Move slowly in black to blackPoint
+            if(glm::distance(glm::vec3(lastPointPoly, 0), glm::vec3(target, 0)) > params.output.blackMoveMinDist){
+                Poly blackMovePath;
+                blackMovePath.addVertex(glm::vec3(lastPointPoly, 0));
+                blackMovePath.addVertex(glm::vec3(target, 0));
+                blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
+                
+                if(polyProcessor.params.spacing == 0) {
+                    blackMovePath.getResampledByCount(200);
+                }
+                
+                for(auto & vertex : blackMovePath.getVertices()) {
+                    pointsDac.push_back( PointDac(vertex, ofFloatColor(0, 0, 0, 0)));
+                }
             }
         }
         
