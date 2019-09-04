@@ -27,28 +27,28 @@ public:
         struct {
             struct {
 //                ofParameter<bool> lines; // draw lines
-                ofParameter<bool> points;    // draw points
-                ofParameter<bool> finalPoints;  // draw the Final Points
-                ofParameter<bool> moveInBlack;  // draw the Final Points
-                ofParameter<bool> pointNumbers;  // draw point numbers (not implemented yet)
+                ofParameter<bool> points{"Draw points", false};    // draw points
+                ofParameter<bool> finalPoints{"Draw finalPoints", true};  // draw the Final Points
+                ofParameter<bool> moveInBlack{"Draw moveInBlack", true};  // draw the Final Points
+                ofParameter<bool> pointNumbers{"Draw pointNumbers", false};  // draw point numbers (not implemented yet)
 
             } draw;
             
             struct {
-                ofParameter<ofFloatColor> masterColor; // color
+                ofParameter<ofFloatColor> masterColor{"masterColor", ofFloatColor::white}; // color
                 ofPixels colorMap;
-                ofParameter<int> startBlanks;     // how many blank points to send at path ends
-                ofParameter<int> startCount;       // how many end repeats to send in start
-                ofParameter<int> endCount;       // how many end repeats to send
-                ofParameter<int> endBlanks;     // how many blank points to send at path ends
-                ofParameter<float> blackMoveMinDist;     // at which minimum distance do we create additional point to move in back
-                ofParameter<float> galvoCorrection;     // Correcting one of the axis to compensate for mirror distortion based on the offset
-                ofParameter<bool> doCapX;        // cap out of range on x (otherwise wraps around)
-                ofParameter<bool> doCapY;        // cap out of range on y (otherwise wraps around)
-                ofParameter<bool> useColorMap;
-                ofParameter<bool> doDisplace;
-                ofParameter<float> displaceAmountHorizontal;
-                ofParameter<float> displaceAmountVertical;
+                ofParameter<int> startBlanks{"start Blanks", 7, 0, 20};     // how many blank points to send at path ends
+                ofParameter<int> startCount{"start Count", 7, 0, 20};       // how many end repeats to send in start
+                ofParameter<int> endCount{"end Count", 7, 0, 20};       // how many end repeats to send
+                ofParameter<int> endBlanks{"end blanks", 7, 0, 20};     // how many blank points to send at path ends
+                ofParameter<float> blackMoveMinDist{"blackMoveMinDist", 0.005, 0.001, 0.01};     // at which minimum distance do we create additional point to move in back
+                ofParameter<float> galvoCorrection{"galvoCorrection", 0, 0, 0.15};     // Correcting one of the axis to compensate for mirror distortion based on the offset
+                ofParameter<bool> doCapX{"doCapX", true};        // cap out of range on x (otherwise wraps around)
+                ofParameter<bool> doCapY{"doCapY", true};        // cap out of range on y (otherwise wraps around)
+                ofParameter<bool> useColorMap{"useColorMap", false};
+                ofParameter<bool> doDisplace{"doDisplace", false};
+                ofParameter<float> displaceAmountHorizontal{"displaceAmountHorizontal", 0., -1., 1.};
+                ofParameter<float> displaceAmountVertical{"displaceAmountVertical", 0., -1., 1.};
 //                ofParameter<bool> doFade;
 //                ofParameter<float> fadeLength;
 
@@ -56,10 +56,10 @@ public:
 
                 struct {
 //                    ofParameter<bool> doMap;
-                    ofParameter<bool> doFlipX;
-                    ofParameter<bool> doFlipY;
-                    ofParameter<glm::vec2> offset;
-                    ofParameter<glm::vec2> scale;
+                    ofParameter<bool> doFlipX{"doFlipX", false};
+                    ofParameter<bool> doFlipY{"doFlipY", false};
+                    ofParameter<glm::vec2> offset{"Offset", {0, 0}, {-1,-1},{1,1}};
+                    ofParameter<glm::vec2> scale{"Scale", {0, 0}, {0,0},{3,3}};
                 } transform;
             } output;
         } params;
@@ -76,74 +76,40 @@ public:
         
         //--------------------------------------------------------------
         Frame() {
-            setDefaultParams();
         }
         
         //--------------------------------------------------------------
-        void setDefaultParams() {
-//            memset(&params, 0, sizeof(params));  // safety catch all default to zero
-//            memset(&stats, 0, sizeof(stats));  // safety catch all default to zero
-			
-//            params.draw.lines = false;
-            params.draw.points = false;
-//            params.draw.pointNumbers = false;
-            params.draw.finalPoints = true;
-            params.draw.moveInBlack = true;
-            params.draw.pointNumbers = false;
-
-            params.output.masterColor.set(ofFloatColor(1, 1, 1, 1)); // limits the color of the polys to it´s value
-            params.output.startBlanks = 10;
-            params.output.startCount = 10;
-            params.output.endCount = 10;
-            params.output.endBlanks = 10;
-            params.output.blackMoveMinDist = 0.01;
-            params.output.galvoCorrection = 0;
-            params.output.doCapX = false;
-            params.output.doCapY = false;
-            params.output.useColorMap = false;
-            params.output.doDisplace = false;
-            params.output.displaceAmountHorizontal = 0.;
-            params.output.displaceAmountVertical = 0.;
-//            params.output.doFade = false;
-//            params.output.fadeLength = 0.;
-            
-//            params.output.transform.doMap = false;
-            params.output.transform.doFlipX = false;
-            params.output.transform.doFlipY = false;
-            params.output.transform.offset.set(glm::vec2(0, 0));
-            params.output.transform.scale.set(glm::vec2(1, 1));
-        }
 		void setup(){
 			parameters.setName("IldaFrame Params");
             polyProcessor.setup();
             parameters.add(polyProcessor.parameters);
-//            parameters.add(params.draw.lines.set("Draw Lines", false));
-            parameters.add(params.draw.points.set("Draw Points",false));
-//            parameters.add(params.draw.pointNumbers.set("Draw Point nums", false));
-            parameters.add(params.draw.finalPoints.set("Draw finalPoints", true));
-            parameters.add(params.draw.moveInBlack.set("Draw moveInBalc (red)", true));
-            parameters.add(params.draw.pointNumbers.set("Draw pointNumbers", false));
+//            parameters.add(params.draw.lines);
+            parameters.add(params.draw.points);
+//            parameters.add(params.draw.pointNumbers);
+            parameters.add(params.draw.finalPoints);
+            parameters.add(params.draw.moveInBlack);
+            parameters.add(params.draw.pointNumbers);
 
-            parameters.add(params.output.masterColor.set("masterColor", {1., 1., 1., 1.}, {0.,0.,0.,0.}, {1., 1., 1., 1.}));
-            parameters.add(params.output.startBlanks.set("start Blanks",10, 0, 100));
-            parameters.add(params.output.startCount.set("start Count", 10, 0, 100));
-            parameters.add(params.output.endCount.set("end Count", 10, 0, 100));
-            parameters.add(params.output.endBlanks.set("end Blanks",10, 0, 100));
-            parameters.add(params.output.blackMoveMinDist.set("blackMoveMinDist",0.01, 0.001, 0.1));
-            parameters.add(params.output.galvoCorrection.set("galvoCorrection",0., -1, 1));
-            parameters.add(params.output.doCapX.set("Do Cap X", false));
-            parameters.add(params.output.doCapY.set("Do Cap Y", false));
-            parameters.add(params.output.useColorMap.set("useColorMap", false));
-            parameters.add(params.output.doDisplace.set("doDisplace", false));
-            parameters.add(params.output.displaceAmountHorizontal.set("displaceAmountHorizontal", 0., -1., 1.));
-            parameters.add(params.output.displaceAmountVertical.set("displaceAmountVertical", 0., -1., 1.));
-//            parameters.add(params.output.doFade.set("doFade", false));
-//            parameters.add(params.output.fadeLength.set("fadeLength", 0., 0., 1.));
+            parameters.add(params.output.masterColor);
+            parameters.add(params.output.startBlanks);
+            parameters.add(params.output.startCount);
+            parameters.add(params.output.endCount);
+            parameters.add(params.output.endBlanks);
+            parameters.add(params.output.blackMoveMinDist);
+            parameters.add(params.output.galvoCorrection);
+            parameters.add(params.output.doCapX);
+            parameters.add(params.output.doCapY);
+            parameters.add(params.output.useColorMap);
+            parameters.add(params.output.doDisplace);
+            parameters.add(params.output.displaceAmountHorizontal);
+            parameters.add(params.output.displaceAmountVertical);
+//            parameters.add(params.output.doFade);
+//            parameters.add(params.output.fadeLength);
 
-            parameters.add(params.output.transform.doFlipX.set("Do Flip X", false));
-            parameters.add(params.output.transform.doFlipY.set("Do Flip Y", false));
-            parameters.add(params.output.transform.offset.set("Offset", {0, 0}, {-1,-1},{1,1}));
-            parameters.add(params.output.transform.scale.set("Scale", {0, 0}, {0,0},{3,3}));
+            parameters.add(params.output.transform.doFlipX);
+            parameters.add(params.output.transform.doFlipY);
+            parameters.add(params.output.transform.offset);
+            parameters.add(params.output.transform.scale);
             
             params.output.colorMap.allocate(512,512,OF_IMAGE_COLOR_ALPHA);
             params.output.displacementMap.allocate(512,512,OF_IMAGE_COLOR_ALPHA);
@@ -206,13 +172,7 @@ public:
 
             updateFinalPoints();
             
-            if(params.output.galvoCorrection !=0){
-                for(auto & point : pointsDac){
-                    float offYZero = abs(float(point.y)/kIldaMaxPoint);
-                    float offXZero = (float(point.x)/kIldaMaxPoint);
-                    point.x = point.x + (5000*params.output.galvoCorrection)*cos(offYZero*PI/2)*offXZero;
-                }
-            }
+            
             
             stats.pointCountProcessed = 0;
             stats.pointCountProcessed = pointsDac.size();
@@ -466,6 +426,16 @@ public:
             // offset
             p += glm::vec2(params.output.transform.offset.get());
             
+            // Galvo correction
+            if(params.output.galvoCorrection !=0){
+                glm::vec2 point = p;
+                point*=2;
+                point-=1;
+                float offYZero = abs(point.y);
+                float offXZero = (point.x);
+                p.x = p.x + (params.output.galvoCorrection)*cos(offYZero*PI/2)*offXZero;
+            }
+            
             // cap or wrap
             if(p.x < 0) {
                 p.x = params.output.doCapX ? 0 : 1 + p.x - ceil(p.x);
@@ -503,7 +473,7 @@ public:
                 
                     
                     // Move slowly in black to startpoint
-                    addMoveBlack(startPoint);
+                    addMoveBlack(lastPointPoly, startPoint);
                     
                     // blanking at start
                     for(int n=0; n<params.output.startBlanks; n++) {
@@ -535,33 +505,38 @@ public:
                     for(int n=0; n<params.output.endBlanks; n++) {
                         pointsDac.push_back( PointDac(endPoint, ofFloatColor(0, 0, 0, 0) ));
                     }
-                    
                     lastPointPoly = endPoint;
                 }
             }
             
             
             if(pointGroups.size()==0){ // for safety
-                // Move slowly in black to blackPoint
-                addMoveBlack(glm::vec2(0.5,0.5));
-                ofxIlda::PointDac point;
-                point.set(glm::vec3(0.5,0.5,0.0), ofFloatColor(0));
-                pointsDac.push_back(point);
+                // Move slowly in black to center
+                addMoveBlack(lastPointPoly, glm::vec2(0.5,0.5));
                 lastPointPoly = Point(0.5,0.5);
-                
+            }
+            
+            //force 500 points
+            if(pointsDac.size()<500){
+                for(int i = 0; i < 500 - pointsDac.size(); i++){
+                ofxIlda::PointDac point;
+                point.set(glm::vec3(lastPointPoly,0.0), ofFloatColor(0));
+                pointsDac.push_back(point);
+                }
             }
         }
         
-        void addMoveBlack(glm::vec2 target){
+        void addMoveBlack(glm::vec2 origin, glm::vec2 target, int byCount = 0){
             // Move slowly in black to blackPoint
-            if(glm::distance(glm::vec3(lastPointPoly, 0), glm::vec3(target, 0)) > params.output.blackMoveMinDist){
+            if(glm::distance(glm::vec3(origin, 0), glm::vec3(target, 0)) > params.output.blackMoveMinDist){
                 Poly blackMovePath;
-                blackMovePath.addVertex(glm::vec3(lastPointPoly, 0));
+                blackMovePath.addVertex(glm::vec3(origin, 0));
                 blackMovePath.addVertex(glm::vec3(target, 0));
-                blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
                 
-                if(polyProcessor.params.spacing == 0) {
-                    blackMovePath.getResampledByCount(200);
+                if( byCount == 0) {
+                    blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
+                }else{
+                    blackMovePath.getResampledByCount(byCount);
                 }
                 
                 for(auto & vertex : blackMovePath.getVertices()) {
