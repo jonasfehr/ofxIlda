@@ -42,7 +42,9 @@ public:
                 ofParameter<int> endCount{"end Count", 7, 0, 20};       // how many end repeats to send
                 ofParameter<int> endBlanks{"end blanks", 7, 0, 20};     // how many blank points to send at path ends
                 ofParameter<float> blackMoveMinDist{"blackMoveMinDist", 0.005, 0.001, 0.01};     // at which minimum distance do we create additional point to move in back
-                ofParameter<float> galvoCorrection{"galvoCorrection", 0, 0, 0.15};     // Correcting one of the axis to compensate for mirror distortion based on the offset
+                ofParameter<float> galvoCorrectionDeform{"galvoCorrectionDeform", 0.0336, 0, 0.15};     // Correcting one of the axis to compensate for mirror distortion based on the offset
+                ofParameter<float> galvoCorrectionDist{"galvoCorrectionDist", 0.0376, 0, 0.15};     // Correcting one of the axis to compensate for mirror distortion based on the offset
+
                 ofParameter<bool> doCapX{"doCapX", true};        // cap out of range on x (otherwise wraps around)
                 ofParameter<bool> doCapY{"doCapY", true};        // cap out of range on y (otherwise wraps around)
                 ofParameter<bool> useColorMap{"useColorMap", false};
@@ -96,7 +98,8 @@ public:
             parameters.add(params.output.endCount);
             parameters.add(params.output.endBlanks);
             parameters.add(params.output.blackMoveMinDist);
-            parameters.add(params.output.galvoCorrection);
+            parameters.add(params.output.galvoCorrectionDeform);
+            parameters.add(params.output.galvoCorrectionDist);
             parameters.add(params.output.doCapX);
             parameters.add(params.output.doCapY);
             parameters.add(params.output.useColorMap);
@@ -135,7 +138,8 @@ public:
             s << "output.endCount : " << params.output.endCount << endl;
             s << "output.endBlanks : " << params.output.endBlanks << endl;
             s << "output.blackMoveMinDist : " << params.output.blackMoveMinDist << endl;
-            s << "output.galvoCorrection : " << params.output.galvoCorrection << endl;
+            s << "output.galvoCorrectionX : " << params.output.galvoCorrectionDeform << endl;
+            s << "output.galvoCorrectionY : " << params.output.galvoCorrectionDist << endl;
             s << "output.doCapX : " << params.output.doCapX << endl;
             s << "output.doCapY : " << params.output.doCapY << endl;
 //            s << "output.transform.doMap : " << params.output.transform.doMap << endl;
@@ -427,13 +431,14 @@ public:
             p += glm::vec2(params.output.transform.offset.get());
             
             // Galvo correction
-            if(params.output.galvoCorrection !=0){
+            if(params.output.galvoCorrectionDeform !=0 || params.output.galvoCorrectionDist !=0 ){
                 glm::vec2 point = p;
                 point*=2;
                 point-=1;
-                float offYZero = abs(point.y);
-                float offXZero = (point.x);
-                p.x = p.x + (params.output.galvoCorrection)*cos(offYZero*PI/2)*offXZero;
+                p.x = p.x + (params.output.galvoCorrectionDeform)*cos(abs(point.y)*PI/2)*point.x - point.x*(1.-cos(abs(point.x)*PI/2))*params.output.galvoCorrectionDist ;
+                p.y = p.y - point.y*(1.-cos(abs(point.y)*PI/2))*params.output.galvoCorrectionDist;
+
+                //p.x = p.x + (params.output.galvoCorrection)*cos(offYZero*PI/2)*offXZero;
             }
             
             // cap or wrap
@@ -517,13 +522,13 @@ public:
             }
             
             //force 500 points
-            if(pointsDac.size()<500){
-                for(int i = 0; i < 500 - pointsDac.size(); i++){
-                ofxIlda::PointDac point;
-                point.set(glm::vec3(lastPointPoly,0.0), ofFloatColor(0));
-                pointsDac.push_back(point);
-                }
-            }
+//            if(pointsDac.size()<500){
+//                for(int i = 0; i < 500 - pointsDac.size(); i++){
+//                ofxIlda::PointDac point;
+//                point.set(glm::vec3(lastPointPoly,0.0), ofFloatColor(0));
+//                pointsDac.push_back(point);
+//                }
+//            }
         }
         
         void addMoveBlack(glm::vec2 origin, glm::vec2 target, int byCount = 0){
