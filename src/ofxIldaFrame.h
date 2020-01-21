@@ -18,6 +18,7 @@
 #include "ofxIldaPoint.h"
 #include "ofxIldaPointDac.h"
 #include "ofxIldaPolyProcessor.h"
+#include "ContentBase.hpp"
 
 namespace ofxIlda {
 	
@@ -37,11 +38,13 @@ public:
             struct {
                 ofParameter<ofFloatColor> masterColor{"masterColor", ofFloatColor::white}; // color
                 ofPixels colorMap;
-                ofParameter<int> startBlanks{"start Blanks", 7, 0, 20};     // how many blank points to send at path ends
-                ofParameter<int> startCount{"start Count", 7, 0, 20};       // how many end repeats to send in start
-                ofParameter<int> endCount{"end Count", 7, 0, 20};       // how many end repeats to send
-                ofParameter<int> endBlanks{"end blanks", 7, 0, 20};     // how many blank points to send at path ends
+                ofParameter<int> startBlanks{"start Blanks", 3, 0, 20};     // how many blank points to send at path ends
+                ofParameter<int> startDelay{"start Delay", 4, 0, 20};       // how many end repeats to send in start
+                ofParameter<int> endCount{"end Count", 3, 0, 20};       // how many end repeats to send
+                ofParameter<int> endBlanks{"end blanks", 3, 0, 20};     // how many blank points to send at path ends
                 ofParameter<float> blackMoveMinDist{"blackMoveMinDist", 0.005, 0.001, 0.01};     // at which minimum distance do we create additional point to move in back
+                ofParameter<float> blackMoveMaxDist{"blackMoveMaxDist", 0.005, 0.01, 0.1};     // at which maximum distance do we create additional point to move in back
+                ofParameter<float> blackMoveIncAmt{"blackMoveIncAmt", 0.1, 0.000001, 0.5};     // at which pct do we increese the to move in back distance
                 ofParameter<float> galvoCorrectionDeform{"galvoCorrectionDeform", 0.0336, 0, 0.15};     // Correcting one of the axis to compensate for mirror distortion based on the offset
                 ofParameter<float> galvoCorrectionDist{"galvoCorrectionDist", 0.0376, 0, 0.15};     // Correcting one of the axis to compensate for mirror distortion based on the offset
 
@@ -94,10 +97,12 @@ public:
 
             parameters.add(params.output.masterColor);
             parameters.add(params.output.startBlanks);
-            parameters.add(params.output.startCount);
+            parameters.add(params.output.startDelay);
             parameters.add(params.output.endCount);
             parameters.add(params.output.endBlanks);
             parameters.add(params.output.blackMoveMinDist);
+            parameters.add(params.output.blackMoveMaxDist);
+            parameters.add(params.output.blackMoveIncAmt);
             parameters.add(params.output.galvoCorrectionDeform);
             parameters.add(params.output.galvoCorrectionDist);
             parameters.add(params.output.doCapX);
@@ -134,10 +139,12 @@ public:
             
             s << "output.masterColor : " << params.output.masterColor << endl;
             s << "output.startBlanks : " << params.output.startBlanks << endl;
-            s << "output.startCount : " << params.output.startCount << endl;
+            s << "output.startCount : " << params.output.startDelay << endl;
             s << "output.endCount : " << params.output.endCount << endl;
             s << "output.endBlanks : " << params.output.endBlanks << endl;
             s << "output.blackMoveMinDist : " << params.output.blackMoveMinDist << endl;
+            s << "output.blackMoveMaxDist : " << params.output.blackMoveMaxDist << endl;
+            s << "output.blackMoveIncAmt : " << params.output.blackMoveIncAmt << endl;
             s << "output.galvoCorrectionX : " << params.output.galvoCorrectionDeform << endl;
             s << "output.galvoCorrectionY : " << params.output.galvoCorrectionDist << endl;
             s << "output.doCapX : " << params.output.doCapX << endl;
@@ -175,8 +182,6 @@ public:
             polyProcessor.update(origPolys, pointGroups);
 
             updateFinalPoints();
-            
-            
             
             stats.pointCountProcessed = 0;
             stats.pointCountProcessed = pointsDac.size();
@@ -462,6 +467,7 @@ public:
         void updateFinalPoints() {
             pointsDac.clear();
             for(auto & pointGroup : pointGroups) {
+//                cout << pointGroup.type << endl;
                 
                 if(pointGroup.size() > 0) {
                     
@@ -478,33 +484,35 @@ public:
                 
                     
                     // Move slowly in black to startpoint
-                    addMoveBlack(lastPointPoly, startPoint);
+                    addMoveBlack(lastPointPoly, startPoint, params.output.blackMoveMinDist, params.output.blackMoveMaxDist, params.output.blackMoveIncAmt);
                     
                     // blanking at start
                     for(int n=0; n<params.output.startBlanks; n++) {
                         pointsDac.push_back( PointDac(startPoint, ofFloatColor(0, 0, 0, 0)));
                     }
                     
-                    // repeat at start
-                    for(int n=0; n<params.output.startCount; n++) {
-                        if(params.output.useColorMap) startPoint.color = getColorFromMap(startPoint);
-                        pointsDac.push_back( PointDac(startPoint, limitColor(startPoint.color, params.output.masterColor)) );
-                    }
-                    
                     
                     // add points
+                    int i = 0;
                     for(auto & point : pointGroup) {
                         transformPoint(point);
                         if(params.output.useColorMap) point.color = getColorFromMap(point);
                         if(params.output.doDisplace) displaceFromMap(point);
+                        if(i < params.output.startDelay){//}  && pointGroup.type != CT_DOT){
+                            // remove the color of first points in the pattern to allow the galvos to reach position.
+                            point.color = ofFloatColor(0,0,0,0);
+                            i++;
+                        }
                         pointsDac.push_back( PointDac(point, limitColor(point.color, params.output.masterColor)) );
                     }
                     
+//                    if(pointGroup.type != CT_DOT){
                     // repeat at end
                     for(int n=0; n<params.output.endCount; n++) {
                         if(params.output.useColorMap) endPoint.color = getColorFromMap(endPoint);
                         pointsDac.push_back( PointDac(endPoint, limitColor(endPoint.color, params.output.masterColor)) );
                     }
+//                    }
                     
                     // blanking at end
                     for(int n=0; n<params.output.endBlanks; n++) {
@@ -517,9 +525,10 @@ public:
             
             if(pointGroups.size()==0){ // for safety
                 // Move slowly in black to center
-                addMoveBlack(lastPointPoly, glm::vec2(0.5,0.5));
+                addMoveBlack(lastPointPoly, glm::vec2(0.5,0.5), params.output.blackMoveMinDist, params.output.blackMoveMaxDist, params.output.blackMoveIncAmt);
                 lastPointPoly = Point(0.5,0.5);
             }
+            
             
             //force 500 points
 //            if(pointsDac.size()<500){
@@ -531,22 +540,35 @@ public:
 //            }
         }
         
-        void addMoveBlack(glm::vec2 origin, glm::vec2 target, int byCount = 0){
-            // Move slowly in black to blackPoint
-            if(glm::distance(glm::vec3(origin, 0), glm::vec3(target, 0)) > params.output.blackMoveMinDist){
-                Poly blackMovePath;
-                blackMovePath.addVertex(glm::vec3(origin, 0));
-                blackMovePath.addVertex(glm::vec3(target, 0));
-                
-                if( byCount == 0) {
-                    blackMovePath = blackMovePath.getResampledBySpacing(params.output.blackMoveMinDist);
-                }else{
-                    blackMovePath.getResampledByCount(byCount);
-                }
-                
-                for(auto & vertex : blackMovePath.getVertices()) {
-                    pointsDac.push_back( PointDac(vertex, ofFloatColor(0, 0, 0, 0)));
-                }
+        glm::vec2 lerp(glm::vec2 a, glm::vec2 b, float amt){
+            return (1.-amt)*a + amt*b;
+        }
+        
+        void addMoveBlack(glm::vec2 origin, glm::vec2 target, float startStep = 0.0025, float maxStep = 0.02, float incAmt = 0.1){
+            float distance = glm::distance(origin, target);
+            float inc = startStep;
+            float distPassed = inc;
+            // speedUp
+            while((inc < maxStep) && ((distPassed/distance) < 0.5)){
+                glm::vec2 pos = lerp(origin, target, distPassed/distance);
+                pointsDac.push_back( PointDac(pos, ofFloatColor(0, 0, 0, 0)));
+                inc*=(1+incAmt);
+                distPassed += inc;
+            }
+            float distToMaxSpeed = distPassed;
+            // keep
+            while(distPassed < (distance-distToMaxSpeed)){
+                glm::vec2 pos = lerp(origin, target, distPassed/distance);
+                pointsDac.push_back( PointDac(pos, ofFloatColor(0, 0, 0, 0)));
+                distPassed += inc;
+            }
+            // slowDown
+            while( distPassed<distance){
+                glm::vec2 pos = lerp(origin, target, distPassed/distance);
+                pointsDac.push_back( PointDac(pos, ofFloatColor(0, 0, 0, 0)));
+                inc*=(1-incAmt);
+                if(inc < startStep) inc = startStep;
+                distPassed += inc;
             }
         }
         
