@@ -29,5 +29,11 @@ namespace ofxIlda {
             this->x = pos.x;
             this->y = pos.y;
         }
+        
+        void limitColor(float maxValue){
+            if(color.r>0 || color.g>0 || color.b>0){
+                color *= maxValue;
+            }
+        }
 	};
 }

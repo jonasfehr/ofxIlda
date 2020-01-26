@@ -9,6 +9,7 @@
 #pragma once
 
 #include "ofxIldaPoly.h"
+#include "ContentBase.hpp"
 
 namespace ofxIlda {
     class PolyProcessor {
@@ -66,7 +67,7 @@ namespace ofxIlda {
 
         }
         //--------------------------------------------------------------
-        void update(const vector<Poly> &origPolys, vector<vector<Point>> &processedPoints) {
+        void update(const vector<Poly> &origPolys, vector<ContentBase::PointGroup> &processedPoints) {
             float totalLength = 0;
             vector<int> pathLengths;
             vector<Poly> processedPolys;

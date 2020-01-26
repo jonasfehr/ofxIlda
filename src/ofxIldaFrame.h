@@ -235,8 +235,8 @@ public:
             glPointSize(5);
             ofSetColor(255);
 
-            for(auto & points : pointGroups){
-                for(auto & point : points){
+            for(auto & pointGroup : pointGroups){
+                for(auto & point : pointGroup.points){
                     mesh.addColor(point.color);
                     mesh.addVertex(glm::vec3(point,0.));
                 }
@@ -351,7 +351,7 @@ public:
         
         //--------------------------------------------------------------
         vector<Point>& getPointGroup(int i) {
-            return pointGroups[i];
+            return pointGroups[i].points;
         }
 
         //--------------------------------------------------------------
@@ -360,7 +360,7 @@ public:
         }
         
         //--------------------------------------------------------------
-        vector<vector<Point>> &getPointGroups() {
+        vector<ContentBase::PointGroup> &getPointGroups() {
             return pointGroups;
         }
         
@@ -371,31 +371,31 @@ public:
         }
         
         //--------------------------------------------------------------
-        void addPointGroups(const vector<vector<Point>> & pointG) {
+        void addPointGroups(const vector<ContentBase::PointGroup> & pointG) {
             for(auto & pG : pointG){
                 pointGroups.push_back(pG);
             }
         }
         
-        //--------------------------------------------------------------
-        vector<Point>& addPoints(const vector<Point> & points) {
-            pointGroups.push_back(points);
-            return pointGroups.back();
-        }
-        
-        //--------------------------------------------------------------
-        vector<Point>& addPoints(const Point & point, const int repeat = 1) {
-            vector<Point> points;
-            for(int i = 0; i < repeat; i++){
-                points.push_back(point);
-            }
-            return addPoints(points);
-        }
-        
-        //--------------------------------------------------------------
-        vector<Point>& addPoints(const glm::vec2 pos, ofFloatColor color = ofFloatColor(1,1,1,1) , const int repeat = 1) {
-            return addPoints(Point(pos, color), repeat);
-        }
+//        //--------------------------------------------------------------
+//        vector<Point>& addPoints(const vector<Point> & points) {
+//            pointGroups.back().points.push_back(points);
+//            return pointGroups.back().points;
+//        }
+//        
+//        //--------------------------------------------------------------
+//        vector<Point>& addPoints(const Point & point, const int repeat = 1) {
+//            vector<Point> points;
+//            for(int i = 0; i < repeat; i++){
+//                points.push_back(point);
+//            }
+//            return addPoints(points);
+//        }
+//        
+//        //--------------------------------------------------------------
+//        vector<Point>& addPoints(const glm::vec2 pos, ofFloatColor color = ofFloatColor(1,1,1,1) , const int repeat = 1) {
+//            return addPoints(Point(pos, color), repeat);
+//        }
         
         //--------------------------------------------------------------
         const vector<PointDac>& getPointsDac() const {
@@ -466,13 +466,53 @@ public:
         //--------------------------------------------------------------
         void updateFinalPoints() {
             pointsDac.clear();
+            bool first = true;
             for(auto & pointGroup : pointGroups) {
-//                cout << pointGroup.type << endl;
+                // select profile
+                int startBlanks = 0;
+                int startDelay = 0;
+                int endCount = 0;
+                int endBlanks = 0;
+
+                switch( pointGroup.type ){
+                    case CT_UNDEFINED:
+                        startBlanks = params.output.startBlanks;
+                        startDelay = params.output.startDelay;
+                        endCount = params.output.endCount;
+                        endBlanks = params.output.endBlanks;
+                        break;
+                        
+                    case CT_DOT:
+                        startBlanks = 3;
+                        startDelay = 0;
+                        endCount = 0;
+                        endBlanks = 0;
+                        break;
+                        
+                    case CT_LINE:
+                        startBlanks = 0;
+                        startDelay = 3;
+                        endCount = 3;
+                        endBlanks = 0;
+                        break;
+                        
+                    case CT_FLOW:
+                        startBlanks = params.output.startBlanks;
+                        startDelay = params.output.startDelay;
+                        endCount = params.output.endCount;
+                        endBlanks = params.output.endBlanks;
+//                        startBlanks = 0;
+//                        startDelay = 3;
+//                        endCount = 3;
+//                        endBlanks = 0;
+                        break;
+                }
+                
                 
                 if(pointGroup.size() > 0) {
-                    
-                    Point startPoint = pointGroup.front();
-                    Point endPoint = pointGroup.back();
+
+                    Point startPoint = pointGroup.points.front();
+                    Point endPoint = pointGroup.points.back();
                     transformPoint(startPoint);
                     transformPoint(endPoint);
 
@@ -484,21 +524,21 @@ public:
                 
                     
                     // Move slowly in black to startpoint
-                    addMoveBlack(lastPointPoly, startPoint, params.output.blackMoveMinDist, params.output.blackMoveMaxDist, params.output.blackMoveIncAmt);
+                    if(first) first = false;
+                    else addMoveBlack(lastPointPoly, startPoint, params.output.blackMoveMinDist, params.output.blackMoveMaxDist, params.output.blackMoveIncAmt);
                     
                     // blanking at start
-                    for(int n=0; n<params.output.startBlanks; n++) {
+                    for(int n=0; n<startBlanks; n++) {
                         pointsDac.push_back( PointDac(startPoint, ofFloatColor(0, 0, 0, 0)));
                     }
                     
-                    
                     // add points
                     int i = 0;
-                    for(auto & point : pointGroup) {
+                    for(auto & point : pointGroup.points) {
                         transformPoint(point);
                         if(params.output.useColorMap) point.color = getColorFromMap(point);
                         if(params.output.doDisplace) displaceFromMap(point);
-                        if(i < params.output.startDelay){//}  && pointGroup.type != CT_DOT){
+                        if(i < startDelay){
                             // remove the color of first points in the pattern to allow the galvos to reach position.
                             point.color = ofFloatColor(0,0,0,0);
                             i++;
@@ -506,16 +546,14 @@ public:
                         pointsDac.push_back( PointDac(point, limitColor(point.color, params.output.masterColor)) );
                     }
                     
-//                    if(pointGroup.type != CT_DOT){
                     // repeat at end
-                    for(int n=0; n<params.output.endCount; n++) {
+                    for(int n=0; n<endCount; n++) {
                         if(params.output.useColorMap) endPoint.color = getColorFromMap(endPoint);
                         pointsDac.push_back( PointDac(endPoint, limitColor(endPoint.color, params.output.masterColor)) );
                     }
-//                    }
                     
                     // blanking at end
-                    for(int n=0; n<params.output.endBlanks; n++) {
+                    for(int n=0; n<endBlanks; n++) {
                         pointsDac.push_back( PointDac(endPoint, ofFloatColor(0, 0, 0, 0) ));
                     }
                     lastPointPoly = endPoint;
@@ -596,7 +634,8 @@ public:
         
     protected:
         vector<Poly> origPolys;   // stores the original polys
-        vector<vector<Point>> pointGroups;   // groups of Raw Points
+//        vector<vector<Point>> pointGroups;   // groups of Raw Points
+        vector<ContentBase::PointGroup> pointGroups;
 
         vector<PointDac> pointsDac;   // final points to send
         Point lastPointPoly;

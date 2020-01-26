@@ -19,8 +19,8 @@ namespace ofxIlda {
     public:
         PointDac() : x(0), y(0), r(0), g(0), b(0), a(0), u1(0), u2(0) {}
         PointDac(int16_t x, int16_t y, int16_t r=0, int16_t g=0, int16_t b=0, int16_t a=0): x(x), y(y), r(r), g(g), b(b), a(a), u1(0), u2(0) {}
-        PointDac(glm::vec2 p, ofFloatColor c, glm::vec2 pmin = {0,0}, glm::vec2 pmax = {1,1}) { set(p, c, pmin, pmax); }
-        PointDac(glm::vec2 p, glm::vec2 pmin = {0,0}, glm::vec2 pmax = {1,1}) { setPosition(p, pmin, pmax); }
+        PointDac(glm::vec2 p, ofFloatColor c, glm::vec2 pmin = {0,0}, glm::vec2 pmax = {1,1}) : r(0), g(0), b(0), a(0), u1(0), u2(0) { set(p, c, pmin, pmax); }
+        PointDac(glm::vec2 p, glm::vec2 pmin = {0,0}, glm::vec2 pmax = {1,1}) : r(0), g(0), b(0), a(0), u1(0), u2(0) { setPosition(p, pmin, pmax); }
         
         int16_t x;
         int16_t y;
