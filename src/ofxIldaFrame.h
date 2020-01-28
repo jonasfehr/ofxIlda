@@ -473,7 +473,9 @@ public:
                 int startDelay = 0;
                 int endCount = 0;
                 int endBlanks = 0;
-
+                bool isDirectlyConnected = false;
+                bool checkIsConnected = false;
+                
                 switch( pointGroup.type ){
                     case CT_UNDEFINED:
                         startBlanks = params.output.startBlanks;
@@ -497,19 +499,40 @@ public:
                         break;
                         
                     case CT_FLOW:
-                        startBlanks = params.output.startBlanks;
-                        startDelay = params.output.startDelay;
-                        endCount = params.output.endCount;
-                        endBlanks = params.output.endBlanks;
-//                        startBlanks = 0;
-//                        startDelay = 3;
-//                        endCount = 3;
-//                        endBlanks = 0;
+                        startBlanks = 0;
+                        startDelay = 3;
+                        endCount = 3;
+                        endBlanks = 0;
+                        break;
+                        
+                    case CT_CIRCLE:
+                        startBlanks = 0;
+                        startDelay = 6;
+                        endCount = 1;
+                        endBlanks = 0;
+                        break;
+                         
+                    case CT_CONNECTEDLINES:
+                        startBlanks = 3;
+                        startDelay = 3;
+                        endCount = 4;
+                        endBlanks = 0;
+                        checkIsConnected = true;
+                        
+                        break;
+                        
+                        case CT_CONNECTEDDOTS:
+                        startBlanks = 3;
+                        startDelay = 1;
+                        endCount = 0;
+                        endBlanks = 0;
+                        
                         break;
                 }
                 
                 
                 if(pointGroup.size() > 0) {
+                    
 
                     Point startPoint = pointGroup.points.front();
                     Point endPoint = pointGroup.points.back();
@@ -522,14 +545,20 @@ public:
                         displaceFromMap(endPoint);
                     }
                 
-                    
+                    if(checkIsConnected){
+                        if(glm::distance((glm::vec2)startPoint, (glm::vec2)lastPointPoly)<params.output.blackMoveMinDist){
+                            isDirectlyConnected = true;
+                        }
+                    }
                     // Move slowly in black to startpoint
                     if(first) first = false;
-                    else addMoveBlack(lastPointPoly, startPoint, params.output.blackMoveMinDist, params.output.blackMoveMaxDist, params.output.blackMoveIncAmt);
+                    else if(!isDirectlyConnected) addMoveBlack(lastPointPoly, startPoint, params.output.blackMoveMinDist, params.output.blackMoveMaxDist, params.output.blackMoveIncAmt);
                     
                     // blanking at start
-                    for(int n=0; n<startBlanks; n++) {
-                        pointsDac.push_back( PointDac(startPoint, ofFloatColor(0, 0, 0, 0)));
+                    if(!isDirectlyConnected){
+                        for(int n=0; n<startBlanks; n++) {
+                            pointsDac.push_back( PointDac(startPoint, ofFloatColor(0, 0, 0, 0)));
+                        }
                     }
                     
                     // add points
@@ -538,7 +567,7 @@ public:
                         transformPoint(point);
                         if(params.output.useColorMap) point.color = getColorFromMap(point);
                         if(params.output.doDisplace) displaceFromMap(point);
-                        if(i < startDelay){
+                        if(i < startDelay && !isDirectlyConnected){
                             // remove the color of first points in the pattern to allow the galvos to reach position.
                             point.color = ofFloatColor(0,0,0,0);
                             i++;
@@ -547,14 +576,17 @@ public:
                     }
                     
                     // repeat at end
-                    for(int n=0; n<endCount; n++) {
-                        if(params.output.useColorMap) endPoint.color = getColorFromMap(endPoint);
-                        pointsDac.push_back( PointDac(endPoint, limitColor(endPoint.color, params.output.masterColor)) );
-                    }
-                    
-                    // blanking at end
-                    for(int n=0; n<endBlanks; n++) {
-                        pointsDac.push_back( PointDac(endPoint, ofFloatColor(0, 0, 0, 0) ));
+                    if(!isDirectlyConnected){
+                        for(int n=0; n<endCount; n++) {
+                            if(params.output.useColorMap) endPoint.color = getColorFromMap(endPoint);
+                            pointsDac.push_back( PointDac(endPoint, limitColor(endPoint.color, params.output.masterColor)) );
+                        }
+                        
+                        
+                        // blanking at end
+                        for(int n=0; n<endBlanks; n++) {
+                            pointsDac.push_back( PointDac(endPoint, ofFloatColor(0, 0, 0, 0) ));
+                        }
                     }
                     lastPointPoly = endPoint;
                 }
