@@ -78,6 +78,8 @@ public:
             int pointCountProcessed; // same as above, except AFTER being processed
         } stats;
         
+        float maxStepSize;
+        
         
         //--------------------------------------------------------------
         Frame() {
@@ -121,6 +123,8 @@ public:
             
             params.output.colorMap.allocate(512,512,OF_IMAGE_COLOR_ALPHA);
             params.output.displacementMap.allocate(512,512,OF_IMAGE_COLOR_ALPHA);
+            
+            maxStepSize = 0;
 
 		}
         
@@ -181,7 +185,17 @@ public:
             
             polyProcessor.update(origPolys, pointGroups);
 
+            for(int i = 1; i < pointsDac.size(); ++i){
+                float stepDist = glm::distance(pointsDac[i-1].getPosition(), pointsDac[i].getPosition());
+                if(stepDist>maxStepSize) maxStepSize = stepDist;
+            }
+            
             updateFinalPoints();
+            
+            for(int i = 1; i < pointsDac.size(); ++i){
+                float stepDist = glm::distance(pointsDac[i-1].getPosition(), pointsDac[i].getPosition());
+                if(stepDist>maxStepSize) maxStepSize = stepDist;
+            }
             
             stats.pointCountProcessed = 0;
             stats.pointCountProcessed = pointsDac.size();
@@ -268,11 +282,13 @@ public:
             
             for(size_t i=0; i<pointsDac.size(); i++) {
                 PointDac &point = pointsDac[i];
-                mesh.addColor(ofFloatColor(point.r/(float)kIldaMaxIntensity, point.g/(float)kIldaMaxIntensity, point.b/(float)kIldaMaxIntensity, point.a/(float)kIldaMaxIntensity));
-                mesh.addVertex(glm::vec3(point.getPosition(), 0));
 
                 if(params.draw.moveInBlack && point.r == 0 && point.g == 0 && point.b == 0 ){
                     mesh.addColor(ofFloatColor(0,1,1,0.25));
+                    mesh.addVertex(glm::vec3(point.getPosition(), 0));
+                } else {
+                    //                mesh.addColor(ofFloatColor(point.r/(float)kIldaMaxIntensity, point.g/(float)kIldaMaxIntensity, point.b/(float)kIldaMaxIntensity, point.a/(float)kIldaMaxIntensity));
+                    mesh.addColor(ofFloatColor(1,0.2,0,0.5));
                     mesh.addVertex(glm::vec3(point.getPosition(), 0));
                 }
                 
@@ -485,14 +501,14 @@ public:
                         break;
                         
                     case CT_DOT:
-                        startBlanks = 3;
+                        startBlanks = 6;
                         startDelay = 0;
                         endCount = 0;
                         endBlanks = 0;
                         break;
                         
                     case CT_LINE:
-                        startBlanks = 0;
+                        startBlanks = 3;
                         startDelay = 3;
                         endCount = 3;
                         endBlanks = 0;
@@ -521,7 +537,7 @@ public:
                         
                         break;
                         
-                        case CT_CONNECTEDDOTS:
+                        case CT_CONNECTEDDOTS: // METRO
                         startBlanks = 3;
                         startDelay = 1;
                         endCount = 0;
